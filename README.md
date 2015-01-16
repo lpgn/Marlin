@@ -9,6 +9,7 @@
   * Notes
     * [Auto Bed Leveling](/Documentation/BedLeveling.md)
     * [Filament Sensor](/Documentation/FilamentSensor.md)
+    * [Ramps Servo Power](/Documentation/RampsServoPower.md)
 
 ##### [RepRap.org Wiki Page](http://reprap.org/wiki/Marlin)
 
@@ -30,9 +31,9 @@ What bugs are we working on: [Bug Fixing Round 2](https://github.com/MarlinFirmw
 
 ## Contact
 
-__IRC:__ #marlin-firmware @freenode
+__IRC:__ #marlin-firmware @freenode ([WebChat Client](https://webchat.freenode.net/?channels=marlin-firmware), [Archive](http://energymonitor-dk.dns4e.net/marlin-firmware-log/))
 
-__Google Hangouts:__ https://plus.google.com/hangouts/_/event/cps5d0ru0iruhl6ebqbk9dpqpa4?authuser=0&hl=da
+__Mailing List:__ marlin@lists.0l.de ([Subscribe](http://lists.0l.de/mailman/listinfo/marlin), [Archive](http://lists.0l.de/pipermail/marlin/))
 
 ## Credits
 
@@ -40,8 +41,7 @@ The current Marlin dev team consists of:
 
  - Erik van der Zalm ([@ErikZalm](https://github.com/ErikZalm))
  - [@daid](https://github.com/daid)
- - Bo Herrmannsen ([@boelle](https://github.com/boelle))
-
+ 
 Sprinters lead developers are Kliment and caru.
 Grbls lead developer is Simen Svale Skogsrud.
 Sonney Jeon (Chamnit) improved some parts of grbl
