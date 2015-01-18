@@ -24,16 +24,12 @@
 // User-specified version info of this build to display in [Pronterface, etc] terminal window during
 // startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
 // build by the user have been successfully uploaded into firmware.
-<<<<<<< HEAD
-#define STRING_VERSION_CONFIG_H __DATE__ "2015-dec-02" __TIME__ "00:01" // build date and time
-#define STRING_CONFIG_H_AUTHOR "(Lucio, LCD ready, carbon mini printer, auto cal, new PID)" // Who made the changes.
-=======
+
 #define STRING_VERSION "v1.0.2"
 #define STRING_URL "reprap.org"
-#define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ // build date and time
-#define STRING_CONFIG_H_AUTHOR "(none, default config)" // Who made the changes.
+#define STRING_VERSION_CONFIG_H __DATE__ "2015-dec-02" __TIME__ // build date and time
+#define STRING_CONFIG_H_AUTHOR "(Lucio, LCD ready, carbon mini printer, auto cal, new PID)" // Who made the changes.
 #define STRING_SPLASH STRING_VERSION " - " STRING_URL // will be shown during bootup
->>>>>>> Development
 
 // SERIAL_PORT selects which serial port should be used for communication with the host.
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
@@ -718,7 +714,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 // Use software PWM to drive the fan, as for the heaters. This uses a very low frequency
 // which is not ass annoying as with the hardware PWM. On the other hand, if this frequency
 // is too low, you should also increment SOFT_PWM_SCALE.
-//#define FAN_SOFT_PWM
+#define FAN_SOFT_PWM
 
 // Incrementing this by 1 will double the software PWM frequency,
 // affecting heaters, and the fan if FAN_SOFT_PWM is enabled.
