@@ -1794,8 +1794,8 @@
 #ifndef SDSUPPORT
 // these pins are defined in the SD library if building with SD support
   #define SCK_PIN          9
-  #define MISO_PIN         10
-  #define MOSI_PIN         11
+  #define MISO_PIN         11
+  #define MOSI_PIN         10
 #endif
 
 #ifdef ULTRA_LCD
