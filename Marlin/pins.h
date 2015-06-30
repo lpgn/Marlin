@@ -74,6 +74,8 @@
   #include "pins_RUMBA.h"
 #elif MB(PRINTRBOARD)
   #include "pins_PRINTRBOARD.h"
+#elif MB(PRINTRBOARD2)
+  #include "pins_PRINTRBOARD2.h"
 #elif MB(BRAINWAVE)
   #include "pins_BRAINWAVE.h"
 #elif MB(BRAINWAVE_PRO)
