@@ -467,7 +467,7 @@ void Config_RetrieveSettings() {
  */
 
 void Config_ResetDefault() {
-float tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT};// added the Lucio edit}
+float tmp1[] = DEFAULT_AXIS_STEPS_PER_UNIT;// added the Lucio edit}
   float tmp2[] = DEFAULT_MAX_FEEDRATE;
   long tmp3[] = DEFAULT_MAX_ACCELERATION;
   for (uint16_t i = 0; i < NUM_AXIS; i++) {
