@@ -27,23 +27,19 @@
 // fi       Finnish
 // an       Aragonese
 // nl       Dutch
-// gl       Galician
 // ca       Catalan
 // eu       Basque-Euskera
 // kana     Japanese
 // kana_utf Japanese
 // cn       Chinese
-// cz       Czech
 
 // fallback if no language is set, don't change
 #ifndef LANGUAGE_INCLUDE
   #define LANGUAGE_INCLUDE GENERATE_LANGUAGE_INCLUDE(en)
 #endif
 
-#if ENABLED(USE_AUTOMATIC_VERSIONING)
+#ifdef HAS_AUTOMATIC_VERSIONING
   #include "_Version.h"
-#else
-  #include "Default_Version.h"
 #endif
 
 #define PROTOCOL_VERSION "1.0"
@@ -68,6 +64,11 @@
   #define MACHINE_NAME "3D Printer"
 #endif
 
+#ifdef CUSTOM_MENDEL_NAME
+  #error CUSTOM_MENDEL_NAME deprecated - use CUSTOM_MACHINE_NAME
+  #define CUSTOM_MACHINE_NAME CUSTOM_MENDEL_NAME
+#endif
+
 #ifdef CUSTOM_MACHINE_NAME
   #undef MACHINE_NAME
   #define MACHINE_NAME CUSTOM_MACHINE_NAME
@@ -77,12 +78,12 @@
   #define SOURCE_CODE_URL "https://github.com/MarlinFirmware/Marlin"
 #endif
 
-#ifndef DETAILED_BUILD_VERSION
-  #error BUILD_VERSION Information must be specified
+#ifndef BUILD_VERSION
+  #define BUILD_VERSION "V1; Sprinter/grbl mashup for gen6"
 #endif
 
-#ifndef UUID
-  #define UUID "00000000-0000-0000-0000-000000000000"
+#ifndef MACHINE_UUID
+   #define MACHINE_UUID "00000000-0000-0000-0000-000000000000"
 #endif
 
 
@@ -122,7 +123,6 @@
 #define MSG_INVALID_EXTRUDER                "Invalid extruder"
 #define MSG_INVALID_SOLENOID                "Invalid solenoid"
 #define MSG_ERR_NO_THERMISTORS              "No thermistors - no temperature"
-<<<<<<< HEAD
 #define MSG_HEATING                         "Heating..."
 #define MSG_HEATING_COMPLETE                "Heating done."
 #define MSG_BED_HEATING                     "Bed Heating."
@@ -132,9 +132,6 @@
 =======
 #define MSG_M115_REPORT                     "FIRMWARE_NAME:Marlin V1.0.2; Sprinter/grbl mashup for gen6 FIRMWARE_URL:" FIRMWARE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_NAME " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" MACHINE_UUID "\n"
 >>>>>>> MarlinFirmware/Release
-=======
-#define MSG_M115_REPORT                     "FIRMWARE_NAME:Marlin " DETAILED_BUILD_VERSION " SOURCE_CODE_URL:" SOURCE_CODE_URL " PROTOCOL_VERSION:" PROTOCOL_VERSION " MACHINE_TYPE:" MACHINE_NAME " EXTRUDER_COUNT:" STRINGIFY(EXTRUDERS) " UUID:" UUID "\n"
->>>>>>> MarlinFirmware/RCBugFix
 #define MSG_COUNT_X                         " Count X: "
 #define MSG_ERR_KILLED                      "Printer halted. kill() called!"
 #define MSG_ERR_STOPPED                     "Printer stopped due to errors. Fix the error and use M999 to restart. (Temperature is reset. Set it after restarting)"
@@ -213,7 +210,6 @@
 #define MSG_PID_DEBUG_PTERM                 " pTerm "
 #define MSG_PID_DEBUG_ITERM                 " iTerm "
 #define MSG_PID_DEBUG_DTERM                 " dTerm "
-#define MSG_PID_DEBUG_CTERM                 " cTerm "
 #define MSG_INVALID_EXTRUDER_NUM            " - Invalid extruder number !"
 
 #define MSG_HEATER_BED                      "bed"
@@ -229,11 +225,10 @@
 #define MSG_DEBUG_INFO                      "DEBUG INFO ENABLED"
 #define MSG_DEBUG_ERRORS                    "DEBUG ERRORS ENABLED"
 #define MSG_DEBUG_DRYRUN                    "DEBUG DRYRUN ENABLED"
-#define MSG_DEBUG_LEVELING                  "DEBUG LEVELING ENABLED"
 
 // LCD Menu Messages
 
-#if DISABLED(DISPLAY_CHARSET_HD44780_JAPAN) && DISABLED(DISPLAY_CHARSET_HD44780_WESTERN) && DISABLED(DISPLAY_CHARSET_HD44780_CYRILLIC)
+#if !(defined( DISPLAY_CHARSET_HD44780_JAPAN ) || defined( DISPLAY_CHARSET_HD44780_WESTERN ) || defined( DISPLAY_CHARSET_HD44780_CYRILLIC ))
   #define DISPLAY_CHARSET_HD44780_JAPAN
 #endif
 

@@ -59,7 +59,8 @@
 #define HEATER_BED_PIN 3 // BED
 #define TEMP_BED_PIN 6 // ANALOG NUMBERING
 
-#define BEEPER_PIN -1
+#define BEEPER -1
+
 
 #define LCD_PINS_RS -1
 #define LCD_PINS_ENABLE -1
@@ -78,4 +79,4 @@
 #define BLEN_B 1
 #define BLEN_A 0
 
-#define SD_DETECT_PIN -1  // Minitronics doesn't use this
+#define SDCARDDETECT -1  // Megatronics does not use this port

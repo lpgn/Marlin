@@ -14,11 +14,11 @@
 
 #define PS_ON_PIN          12
 
-#if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
+#if defined(ULTRA_LCD) && defined(NEWPANEL)
 
   #define BLEN_C 2
   #define BLEN_B 1
   #define BLEN_A 0
-  #define SD_DETECT_PIN 6
+  #define SDCARDDETECT 6
 
 #endif // NEWPANEL && ULTRA_LCD

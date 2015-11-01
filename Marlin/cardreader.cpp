@@ -5,7 +5,7 @@
 #include "temperature.h"
 #include "language.h"
 
-#if ENABLED(SDSUPPORT)
+#ifdef SDSUPPORT
 
 CardReader::CardReader() {
   filesize = 0;
@@ -56,21 +56,22 @@ void CardReader::lsDive(const char *prepend, SdFile parent, const char * const m
     // If the entry is a directory and the action is LS_SerialPrint
     if (DIR_IS_SUBDIR(&p) && lsAction != LS_Count && lsAction != LS_GetFilename) {
 
+      // Allocate enough stack space for the full path to a folder
+      int len = strlen(prepend) + FILENAME_LENGTH + 1;
+      char path[len];
+
       // Get the short name for the item, which we know is a folder
       char lfilename[FILENAME_LENGTH];
       createFilename(lfilename, p);
 
-      // Allocate enough stack space for the full path to a folder, trailing slash, and nul
-      boolean prepend_is_empty = (prepend[0] == '\0');
-      int len = (prepend_is_empty ? 1 : strlen(prepend)) + strlen(lfilename) + 1 + 1;
-      char path[len];
-
       // Append the FOLDERNAME12/ to the passed string.
       // It contains the full path to the "parent" argument.
       // We now have the full path to the item in this folder.
-      strcpy(path, prepend_is_empty ? "/" : prepend); // root slash if prepend is empty
-      strcat(path, lfilename); // FILENAME_LENGTH-1 characters maximum
-      strcat(path, "/");       // 1 character
+      path[0] = '\0';
+      if (prepend[0] == '\0') strcat(path, "/"); // a root slash if prepend is empty
+      strcat(path, prepend);
+      strcat(path, lfilename);
+      strcat(path, "/");
 
       // Serial.print(path);
 
@@ -128,7 +129,7 @@ void CardReader::ls()  {
   lsDive("", root);
 }
 
-#if ENABLED(LONG_FILENAME_HOST_SUPPORT)
+#ifdef LONG_FILENAME_HOST_SUPPORT
 
   /**
    * Get a long pretty path based on a DOS 8.3 path
@@ -195,9 +196,7 @@ void CardReader::initsd() {
   cardOK = false;
   if (root.isOpen()) root.close();
 
-  #if ENABLED(SDEXTRASLOW)
-    #define SPI_SPEED SPI_QUARTER_SPEED
-  #elif ENABLED(SDSLOW)
+  #ifdef SDSLOW
     #define SPI_SPEED SPI_HALF_SPEED
   #else
     #define SPI_SPEED SPI_FULL_SPEED
@@ -248,8 +247,9 @@ void CardReader::release() {
 }
 
 void CardReader::startFileprint() {
-  if (cardOK)
+  if (cardOK) {
     sdprinting = true;
+  }
 }
 
 void CardReader::pauseSDPrint() {
@@ -266,7 +266,7 @@ void CardReader::getAbsFilename(char *t) {
   *t = '/'; t++; cnt++;
   for (uint8_t i = 0; i < workDirDepth; i++) {
     workDirParents[i].getFilename(t); //SDBaseFile.getfilename!
-    while (*t && cnt < MAXPATHNAMELENGTH) { t++; cnt++; } //crawl counter forward.
+    while(*t && cnt < MAXPATHNAMELENGTH) { t++; cnt++; } //crawl counter forward.
   }
   if (cnt < MAXPATHNAMELENGTH - FILENAME_LENGTH)
     file.getFilename(t);
@@ -278,34 +278,34 @@ void CardReader::openFile(char* name, bool read, bool replace_current/*=true*/) 
   if (!cardOK) return;
   if (file.isOpen()) { //replacing current file by new file, or subfile call
     if (!replace_current) {
-      if (file_subcall_ctr > SD_PROCEDURE_DEPTH - 1) {
-        SERIAL_ERROR_START;
-        SERIAL_ERRORPGM("trying to call sub-gcode files with too many levels. MAX level is:");
-        SERIAL_ERRORLN(SD_PROCEDURE_DEPTH);
-        kill(PSTR(MSG_KILLED));
-        return;
-      }
-
-      SERIAL_ECHO_START;
-      SERIAL_ECHOPGM("SUBROUTINE CALL target:\"");
-      SERIAL_ECHO(name);
-      SERIAL_ECHOPGM("\" parent:\"");
-
-      //store current filename and position
-      getAbsFilename(filenames[file_subcall_ctr]);
-
-      SERIAL_ECHO(filenames[file_subcall_ctr]);
-      SERIAL_ECHOPGM("\" pos");
-      SERIAL_ECHOLN(sdpos);
-      filespos[file_subcall_ctr] = sdpos;
-      file_subcall_ctr++;
+     if (file_subcall_ctr > SD_PROCEDURE_DEPTH - 1) {
+       SERIAL_ERROR_START;
+       SERIAL_ERRORPGM("trying to call sub-gcode files with too many levels. MAX level is:");
+       SERIAL_ERRORLN(SD_PROCEDURE_DEPTH);
+       kill(PSTR(MSG_KILLED));
+       return;
      }
-     else {
-      SERIAL_ECHO_START;
-      SERIAL_ECHOPGM("Now doing file: ");
-      SERIAL_ECHOLN(name);
-     }
-     file.close();
+
+     SERIAL_ECHO_START;
+     SERIAL_ECHOPGM("SUBROUTINE CALL target:\"");
+     SERIAL_ECHO(name);
+     SERIAL_ECHOPGM("\" parent:\"");
+
+     //store current filename and position
+     getAbsFilename(filenames[file_subcall_ctr]);
+
+     SERIAL_ECHO(filenames[file_subcall_ctr]);
+     SERIAL_ECHOPGM("\" pos");
+     SERIAL_ECHOLN(sdpos);
+     filespos[file_subcall_ctr] = sdpos;
+     file_subcall_ctr++;
+    }
+    else {
+     SERIAL_ECHO_START;
+     SERIAL_ECHOPGM("Now doing file: ");
+     SERIAL_ECHOLN(name);
+    }
+    file.close();
   }
   else { //opening fresh file
     file_subcall_ctr = 0; //resetting procedure depth in case user cancels print while in procedure

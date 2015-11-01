@@ -1,5 +1,5 @@
 /**
- * Brainwave Pro pin assignments (AT90USB1286)
+ * Brainwave Pro pin assignments (AT90USB186)
  *
  * Requires hardware bundle for Arduino:
  * https://github.com/unrepentantgeek/brainwave-arduino
@@ -15,7 +15,7 @@
   #error  Uncomment #define AT90USBxx_TEENSYPP_ASSIGNMENTS in fastio.h for this config
 #endif
 
-#define LARGE_FLASH        true
+#define AT90USB 1286  // Disable MarlinSerial etc.
 
 #define X_STEP_PIN         33
 #define X_DIR_PIN          32
@@ -31,7 +31,7 @@
 #define Z_DIR_PIN          28
 #define Z_ENABLE_PIN       37
 #define Z_MAX_PIN          36
-#define Z_MIN_PIN          17  // Bed Z probe
+#define Z_MIN_PIN          17  // Bed probe
 
 #define E0_STEP_PIN        35
 #define E0_DIR_PIN         34
@@ -54,10 +54,10 @@
 #define PS_ON_PIN          -1
 #define KILL_PIN           -1
 #define ALARM_PIN          -1
-#define SD_DETECT_PIN      12
+#define SDCARDDETECT       12
 
-#if DISABLED(SDSUPPORT)
-  // these pins are defined in the SD library if building with SD support
+#ifndef SDSUPPORT
+// these pins are defined in the SD library if building with SD support
   #define SCK_PIN          21
   #define MISO_PIN         23
   #define MOSI_PIN         22

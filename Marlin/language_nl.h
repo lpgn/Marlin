@@ -81,8 +81,10 @@
 #define MSG_TEMPERATURE                     "Temperatuur"
 #define MSG_MOTION                          "Beweging"
 #define MSG_VOLUMETRIC                      "Filament"
-#define MSG_VOLUMETRIC_ENABLED              "E in mm3"
-#define MSG_FILAMENT_DIAM                   "Fil. Dia."
+#define MSG_VOLUMETRIC_ENABLED		        "E in mm3"
+#define MSG_FILAMENT_SIZE_EXTRUDER_0        "Fil. Dia. 1"
+#define MSG_FILAMENT_SIZE_EXTRUDER_1        "Fil. Dia. 2"
+#define MSG_FILAMENT_SIZE_EXTRUDER_2        "Fil. Dia. 3"
 #define MSG_CONTRAST                        "LCD contrast"
 #define MSG_STORE_EPROM                     "Geheugen opslaan"
 #define MSG_LOAD_EPROM                      "Geheugen laden"
@@ -124,12 +126,12 @@
 #define MSG_END_HOUR                        "hours"
 #define MSG_END_MINUTE                      "minutes"
 
-#if ENABLED(DELTA_CALIBRATION_MENU)
-  #define MSG_DELTA_CALIBRATE               "Delta Calibratie"
-  #define MSG_DELTA_CALIBRATE_X             "Kalibreer X"
-  #define MSG_DELTA_CALIBRATE_Y             "Kalibreer Y"
-  #define MSG_DELTA_CALIBRATE_Z             "Kalibreer Z"
-  #define MSG_DELTA_CALIBRATE_CENTER        "Kalibreer Midden"
+#ifdef DELTA_CALIBRATION_MENU
+    #define MSG_DELTA_CALIBRATE             "Delta Calibratie"
+    #define MSG_DELTA_CALIBRATE_X           "Kalibreer X"
+    #define MSG_DELTA_CALIBRATE_Y           "Kalibreer Y"
+    #define MSG_DELTA_CALIBRATE_Z           "Kalibreer Z"
+    #define MSG_DELTA_CALIBRATE_CENTER      "Kalibreer Midden"
 #endif // DELTA_CALIBRATION_MENU
 
 #endif // LANGUAGE_NL_H

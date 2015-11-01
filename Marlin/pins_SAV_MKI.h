@@ -9,6 +9,8 @@
   #error Oops!  Make sure you have 'Teensy++ 2.0' selected from the 'Tools -> Boards' menu.
 #endif
 
+#define AT90USB 1286  // Disable MarlinSerial etc.
+
 #define LARGE_FLASH        true
 
 #define X_STEP_PIN         0
@@ -45,8 +47,8 @@
 #define TEMP_1_PIN         -1
 #define TEMP_2_PIN         -1
 
-#if DISABLED(SDSUPPORT)
-  // these pins are defined in the SD library if building with SD support
+#ifndef SDSUPPORT
+   // these pins are defined in the SD library if building with SD support
   #define SCK_PIN          9
   #define MISO_PIN         11
   #define MOSI_PIN         10
@@ -83,9 +85,9 @@
 #define LED_PIN            -1
 #define PS_ON_PIN          -1
 #define ALARM_PIN          -1
-#define SD_DETECT_PIN      -1
+#define SDCARDDETECT       -1
 
-#define BEEPER_PIN         -1
+#define BEEPER             -1
 #define LCD_PINS_RS        -1
 #define LCD_PINS_ENABLE    -1
 #define LCD_PINS_D4        -1
@@ -93,13 +95,13 @@
 #define LCD_PINS_D6        -1
 #define LCD_PINS_D7        -1
 
-#if ENABLED(SAV_3DLCD)
+#ifdef SAV_3DLCD
   // For LCD SHIFT register LCD
   #define SR_DATA_PIN         EXT_AUX_SDA_D1
   #define SR_CLK_PIN          EXT_AUX_SCL_D0
 #endif  // SAV_3DLCD
 
-#if ENABLED(SAV_3DLCD) || ENABLED(SAV_3DGLCD)
+#if defined(SAV_3DLCD)||defined(SAV_3DGLCD)
   #define BTN_EN1            EXT_AUX_A1_IO
   #define BTN_EN2            EXT_AUX_A0_IO
   #define BTN_ENC            EXT_AUX_PWM_D24
@@ -108,4 +110,6 @@
   #define HOME_PIN           EXT_AUX_A4_IO
 #endif // SAV_3DLCD || SAV_3DGLCD
 
-#define SERVO0_PIN         41 // In teensy's pin definition for pinMode (in servo.cpp)
+#ifdef NUM_SERVOS
+  #define SERVO0_PIN       41 // In teensy's pin definition for pinMode (in servo.cpp)
+#endif
