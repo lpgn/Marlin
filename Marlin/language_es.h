@@ -1,17 +1,55 @@
 /**
+<<<<<<< HEAD
  * Spanish
  *
  * LCD Menu Messages
  * Please note these are limited to 17 characters!
+=======
+ * Marlin 3D Printer Firmware
+ * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ *
+ * Based on Sprinter and grbl.
+ * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+/**
+ * Spanish
+ *
+ * LCD Menu Messages
+ * See also https://github.com/MarlinFirmware/Marlin/wiki/LCD-Language
+>>>>>>> MarlinFirmware/RC
  *
  */
 #ifndef LANGUAGE_ES_H
 #define LANGUAGE_ES_H
 
+<<<<<<< HEAD
+=======
+#define MAPPER_NON
+// Define SIMULATE_ROMFONT to see what is seen on the character based display defined in Configuration.h
+//#define SIMULATE_ROMFONT
+#define DISPLAY_CHARSET_ISO10646_1
+
+>>>>>>> MarlinFirmware/RC
 #define WELCOME_MSG                         MACHINE_NAME " lista."
 #define MSG_SD_INSERTED                     "Tarjeta colocada"
 #define MSG_SD_REMOVED                      "Tarjeta retirada"
 #define MSG_MAIN                            "Menu principal"
+<<<<<<< HEAD
 #define MSG_AUTOSTART                       " Autostart"
 #define MSG_DISABLE_STEPPERS                "Apagar motores"
 #define MSG_AUTO_HOME                       "Llevar al origen"
@@ -29,6 +67,25 @@
 #define MSG_PREHEAT_ABS1                    "Precalentar ABS 2"
 #define MSG_PREHEAT_ABS2                    "Precalentar ABS 3"
 #define MSG_PREHEAT_ABS012                  "Precal. ABS Todo"
+=======
+#define MSG_AUTOSTART                       "Autostart"
+#define MSG_DISABLE_STEPPERS                "Apagar motores"
+#define MSG_AUTO_HOME                       "Llevar al origen"
+#define MSG_LEVEL_BED_HOMING                "Homing XYZ"
+#define MSG_LEVEL_BED_WAITING               "Click to Begin"
+#define MSG_LEVEL_BED_DONE                  "Leveling Done!"
+#define MSG_SET_HOME_OFFSETS                "Ajustar offsets"
+#define MSG_HOME_OFFSETS_APPLIED            "Offsets applied"
+#define MSG_SET_ORIGIN                      "Establecer cero"
+#define MSG_PREHEAT_PLA                     "Precalentar PLA"
+#define MSG_PREHEAT_PLA_N                   "Precalentar PLA "
+#define MSG_PREHEAT_PLA_ALL                 "Precal. PLA Todo"
+#define MSG_PREHEAT_PLA_BEDONLY             "Precal. PLA Base"
+#define MSG_PREHEAT_PLA_SETTINGS            "Ajustar temp. PLA"
+#define MSG_PREHEAT_ABS                     "Precalentar ABS"
+#define MSG_PREHEAT_ABS_N                   "Precalentar ABS "
+#define MSG_PREHEAT_ABS_ALL                 "Precal. ABS Todo"
+>>>>>>> MarlinFirmware/RC
 #define MSG_PREHEAT_ABS_BEDONLY             "Precal. ABS Base"
 #define MSG_PREHEAT_ABS_SETTINGS            "Ajustar temp. ABS"
 #define MSG_COOLDOWN                        "Enfriar"
@@ -37,16 +94,24 @@
 #define MSG_EXTRUDE                         "Extruir"
 #define MSG_RETRACT                         "Retraer"
 #define MSG_MOVE_AXIS                       "Mover ejes"
+<<<<<<< HEAD
+=======
+#define MSG_LEVEL_BED                       "Nivelar cama"
+>>>>>>> MarlinFirmware/RC
 #define MSG_MOVE_X                          "Mover X"
 #define MSG_MOVE_Y                          "Mover Y"
 #define MSG_MOVE_Z                          "Mover Z"
 #define MSG_MOVE_E                          "Extrusor"
+<<<<<<< HEAD
 #define MSG_MOVE_E1                         "Extrusor2"
 #define MSG_MOVE_E2                         "Extrusor3"
+=======
+>>>>>>> MarlinFirmware/RC
 #define MSG_MOVE_01MM                       "Mover 0.1mm"
 #define MSG_MOVE_1MM                        "Mover 1mm"
 #define MSG_MOVE_10MM                       "Mover 10mm"
 #define MSG_SPEED                           "Velocidad"
+<<<<<<< HEAD
 #define MSG_NOZZLE                          "Nozzle"
 #define MSG_NOZZLE1                         "Nozzle2"
 #define MSG_NOZZLE2                         "Nozzle3"
@@ -60,6 +125,16 @@
 #define MSG_MIN                             "\002 Min"
 #define MSG_MAX                             "\002 Max"
 #define MSG_FACTOR                          "\002 Fact"
+=======
+#define MSG_NOZZLE                          "Fusor"
+#define MSG_BED                             "Base"
+#define MSG_FAN_SPEED                       "Ventilador"
+#define MSG_FLOW                            "Flujo"
+#define MSG_CONTROL                         "Control"
+#define MSG_MIN                             LCD_STR_THERMOMETER " Min"
+#define MSG_MAX                             LCD_STR_THERMOMETER " Max"
+#define MSG_FACTOR                          LCD_STR_THERMOMETER " Fact"
+>>>>>>> MarlinFirmware/RC
 #define MSG_AUTOTEMP                        "Autotemp"
 #define MSG_ON                              "On"
 #define MSG_OFF                             "Off"
@@ -86,6 +161,12 @@
 #define MSG_ESTEPS                          "E pasos/mm"
 #define MSG_TEMPERATURE                     "Temperatura"
 #define MSG_MOTION                          "Movimiento"
+<<<<<<< HEAD
+=======
+#define MSG_VOLUMETRIC                      "Filamento"
+#define MSG_VOLUMETRIC_ENABLED              "E in mm3"
+#define MSG_FILAMENT_DIAM                   "Fil. Dia."
+>>>>>>> MarlinFirmware/RC
 #define MSG_CONTRAST                        "Contraste"
 #define MSG_STORE_EPROM                     "Guardar memoria"
 #define MSG_LOAD_EPROM                      "Cargar memoria"
@@ -117,6 +198,7 @@
 #define MSG_FILAMENTCHANGE                  "Cambiar filamento"
 #define MSG_INIT_SDCARD                     "Iniciando tarjeta"
 #define MSG_CNG_SDCARD                      "Cambiar tarjeta"
+<<<<<<< HEAD
 #define MSG_ZPROBE_OUT                      "sonda Z fuera"
 #define MSG_POSITION_UNKNOWN                "Reiniciar X/Y y Z"
 #define MSG_ZPROBE_ZOFFSET                  "Offset Z"
@@ -142,6 +224,24 @@
     #define MSG_DELTA_CALIBRATE_Y           "Calibrate Y"
     #define MSG_DELTA_CALIBRATE_Z           "Calibrate Z"
     #define MSG_DELTA_CALIBRATE_CENTER      "Calibrate Center"
+=======
+#define MSG_ZPROBE_OUT                      "Sonda Z fuera"
+#define MSG_YX_UNHOMED                      "Reiniciar X/Y y Z"
+#define MSG_ZPROBE_ZOFFSET                  "Offset Z"
+#define MSG_BABYSTEP_X                      "Micropaso X"
+#define MSG_BABYSTEP_Y                      "Micropaso Y"
+#define MSG_BABYSTEP_Z                      "Micropaso Z"
+#define MSG_ENDSTOP_ABORT                   "Endstop abort"
+#define MSG_END_HOUR                        "horas"
+#define MSG_END_MINUTE                      "minutos"
+
+#if ENABLED(DELTA_CALIBRATION_MENU)
+  #define MSG_DELTA_CALIBRATE               "Calibracion Delta"
+  #define MSG_DELTA_CALIBRATE_X             "Calibrar X"
+  #define MSG_DELTA_CALIBRATE_Y             "Calibrar Y"
+  #define MSG_DELTA_CALIBRATE_Z             "Calibrar Z"
+  #define MSG_DELTA_CALIBRATE_CENTER        "Calibrar Centro"
+>>>>>>> MarlinFirmware/RC
 #endif // DELTA_CALIBRATION_MENU
 
 #endif // LANGUAGE_ES_H

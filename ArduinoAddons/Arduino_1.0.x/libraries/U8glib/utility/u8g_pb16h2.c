@@ -62,8 +62,13 @@ void u8g_pb16h2_Init(u8g_pb_t *b, void *buf, u8g_uint_t width)
   u8g_pb16h2_Clear(b);
 }
 
+<<<<<<< HEAD
 static void u8g_pb16h2_set_pixel(u8g_pb_t *b, u8g_uint_t x, u8g_uint_t y, uint8_t color_index) U8G_NOINLINE;
 static void u8g_pb16h2_set_pixel(u8g_pb_t *b, u8g_uint_t x, u8g_uint_t y, uint8_t color_index)
+=======
+static void u8g_pb16h2_set_pixel(u8g_pb_t *b, u8g_uint_t x, u8g_uint_t y, uint8_t color_index, uint8_t is_or) U8G_NOINLINE;
+static void u8g_pb16h2_set_pixel(u8g_pb_t *b, u8g_uint_t x, u8g_uint_t y, uint8_t color_index, uint8_t is_or)
+>>>>>>> MarlinFirmware/RC
 {
   register uint8_t mask;
   register uint16_t tmp;
@@ -84,6 +89,7 @@ static void u8g_pb16h2_set_pixel(u8g_pb_t *b, u8g_uint_t x, u8g_uint_t y, uint8_
   tmp = x;
   tmp &= 3;
   tmp <<= 1;
+<<<<<<< HEAD
   mask = 3;
   mask <<= tmp;
   mask = ~mask;
@@ -91,11 +97,26 @@ static void u8g_pb16h2_set_pixel(u8g_pb_t *b, u8g_uint_t x, u8g_uint_t y, uint8_
   color_index <<= tmp;
     
   *ptr &= mask;
+=======
+  if ( is_or == 0 )
+  {
+    mask = 3;
+    mask <<= tmp;
+    mask = ~mask;
+    *ptr &= mask;
+  }
+  color_index &= 3;
+  color_index <<= tmp;
+>>>>>>> MarlinFirmware/RC
   *ptr |= color_index;
 }
 
 
+<<<<<<< HEAD
 void u8g_pb16h2_SetPixel(u8g_pb_t *b, const u8g_dev_arg_pixel_t * const arg_pixel)
+=======
+void u8g_pb16h2_SetPixel(u8g_pb_t *b, const u8g_dev_arg_pixel_t * const arg_pixel, uint8_t is_or)
+>>>>>>> MarlinFirmware/RC
 {
   if ( arg_pixel->y < b->p.page_y0 )
     return;
@@ -103,7 +124,11 @@ void u8g_pb16h2_SetPixel(u8g_pb_t *b, const u8g_dev_arg_pixel_t * const arg_pixe
     return;
   if ( arg_pixel->x >= b->width )
     return;
+<<<<<<< HEAD
   u8g_pb16h2_set_pixel(b, arg_pixel->x, arg_pixel->y, arg_pixel->color);
+=======
+  u8g_pb16h2_set_pixel(b, arg_pixel->x, arg_pixel->y, arg_pixel->color, is_or);
+>>>>>>> MarlinFirmware/RC
 }
 
 
@@ -114,7 +139,11 @@ void u8g_pb16h2_Set8PixelStd(u8g_pb_t *b, u8g_dev_arg_pixel_t *arg_pixel)
   {
     if ( pixel & 128 )
     {
+<<<<<<< HEAD
       u8g_pb16h2_SetPixel(b, arg_pixel);
+=======
+      u8g_pb16h2_SetPixel(b, arg_pixel, 0);
+>>>>>>> MarlinFirmware/RC
     }
     switch( arg_pixel->dir )
     {
@@ -127,6 +156,27 @@ void u8g_pb16h2_Set8PixelStd(u8g_pb_t *b, u8g_dev_arg_pixel_t *arg_pixel)
   } while( pixel != 0  );
 }
 
+<<<<<<< HEAD
+=======
+void u8g_pb16h2_Or4PixelStd(u8g_pb_t *b, u8g_dev_arg_pixel_t *arg_pixel)
+{
+  register uint8_t pixel = arg_pixel->pixel;
+  do
+  {
+    arg_pixel->color = pixel & 0x0c0;
+    arg_pixel->color >>= 6;
+    u8g_pb16h2_SetPixel(b, arg_pixel, 1);
+    switch( arg_pixel->dir )
+    {
+      case 0: arg_pixel->x++; break;
+      case 1: arg_pixel->y++; break;
+      case 2: arg_pixel->x--; break;
+      case 3: arg_pixel->y--; break;
+    }
+    pixel <<= 2;
+  } while( pixel != 0  );
+}
+>>>>>>> MarlinFirmware/RC
 
 
 uint8_t u8g_dev_pb16h2_base_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *arg)
@@ -141,7 +191,17 @@ uint8_t u8g_dev_pb16h2_base_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *ar
       }
       break;
     case U8G_DEV_MSG_SET_PIXEL:
+<<<<<<< HEAD
       u8g_pb16h2_SetPixel(pb, (u8g_dev_arg_pixel_t *)arg);
+=======
+      u8g_pb16h2_SetPixel(pb, (u8g_dev_arg_pixel_t *)arg, 0);
+      break;
+    case U8G_DEV_MSG_SET_4TPIXEL:
+      u8g_pb16h2_Or4PixelStd(pb, (u8g_dev_arg_pixel_t *)arg);
+      break;
+    case U8G_DEV_MSG_SET_TPIXEL:
+      u8g_pb16h2_SetPixel(pb, (u8g_dev_arg_pixel_t *)arg, 1);
+>>>>>>> MarlinFirmware/RC
       break;
     case U8G_DEV_MSG_INIT:
       break;
@@ -169,7 +229,11 @@ uint8_t u8g_dev_pb16h2_base_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *ar
     case U8G_DEV_MSG_GET_HEIGHT:
       *((u8g_uint_t *)arg) = pb->p.total_height;
       break;
+<<<<<<< HEAD
     case U8G_DEV_MSG_SET_COLOR_INDEX:
+=======
+    case U8G_DEV_MSG_SET_COLOR_ENTRY:
+>>>>>>> MarlinFirmware/RC
       break;
     case U8G_DEV_MSG_SET_XY_CB:
       break;

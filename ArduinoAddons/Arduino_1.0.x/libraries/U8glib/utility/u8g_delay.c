@@ -30,7 +30,16 @@
   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
   ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+<<<<<<< HEAD
   
+=======
+
+
+  void u8g_Delay(uint16_t val)		Delay by "val" milliseconds
+  void u8g_MicroDelay(void)		Delay be one microsecond
+  void u8g_10MicroDelay(void)	Delay by 10 microseconds
+
+>>>>>>> MarlinFirmware/RC
   
 */
 
@@ -40,19 +49,50 @@
 /*==== Part 1: Derive suitable delay procedure ====*/
 
 #if defined(ARDUINO)
+<<<<<<< HEAD
+=======
+
+#  if ARDUINO < 100 
+#    include <WProgram.h> 
+#  else 
+#    include <Arduino.h> 
+#  endif
+
+>>>>>>> MarlinFirmware/RC
 #  if defined(__AVR__)
 #    define USE_AVR_DELAY
 #  elif defined(__PIC32MX)
 #    define USE_PIC32_DELAY
+<<<<<<< HEAD
 #  elif defined(__arm__)		/* Arduino Due */
+=======
+#  elif defined(__arm__)		/* Arduino Due & Teensy */
+>>>>>>> MarlinFirmware/RC
 #    define USE_ARDUINO_DELAY
 #  else
 #    define USE_ARDUINO_DELAY
 #  endif
+<<<<<<< HEAD
+=======
+#elif defined(U8G_RASPBERRY_PI)
+#  define USE_RASPBERRYPI_DELAY
+>>>>>>> MarlinFirmware/RC
 #elif defined(__AVR__)
 #  define USE_AVR_DELAY
 #elif defined(__18CXX)
 #  define USE_PIC18_DELAY
+<<<<<<< HEAD
+=======
+#elif defined(__arm__)
+/* do not define anything, all procedures are expected to be defined outside u8glib */
+
+/*
+void u8g_Delay(uint16_t val);
+void u8g_MicroDelay(void);
+void u8g_10MicroDelay(void);
+*/
+
+>>>>>>> MarlinFirmware/RC
 #else
 #  define USE_DUMMY_DELAY
 #endif
@@ -61,6 +101,29 @@
 
 /*==== Part 2: Definition of the delay procedures ====*/
 
+<<<<<<< HEAD
+=======
+/*== Raspberry Pi Delay ==*/
+#if defined (USE_RASPBERRYPI_DELAY)
+#include <wiringPi.h>
+//#include "/usr/local/include/wiringPi.h"
+void u8g_Delay(uint16_t val) {
+   //delay(val);
+   //usleep((uint32_t)val*(uint32_t)1000);
+   delayMicroseconds((uint32_t)val*(uint32_t)1000);
+}
+void u8g_MicroDelay(void)
+{
+   usleep(1);
+}
+void u8g_10MicroDelay(void)
+{
+   usleep(10);
+}
+#endif
+
+
+>>>>>>> MarlinFirmware/RC
 /*== AVR Delay ==*/
 
 #if defined(USE_AVR_DELAY)
@@ -144,7 +207,15 @@ void u8g_10MicroDelay(void)
 #if defined(USE_ARDUINO_DELAY)
 void u8g_Delay(uint16_t val)
 {
+<<<<<<< HEAD
 	delay(val);
+=======
+#if defined(__arm__)
+	delayMicroseconds((uint32_t)val*(uint32_t)1000);
+#else
+	delay(val);
+#endif
+>>>>>>> MarlinFirmware/RC
 }
 void u8g_MicroDelay(void)
 {

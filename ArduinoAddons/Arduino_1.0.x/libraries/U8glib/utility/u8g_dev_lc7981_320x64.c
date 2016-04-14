@@ -40,7 +40,16 @@
 
 #include "u8g.h"
 
+<<<<<<< HEAD
 #define WIDTH 320
+=======
+#ifdef U8G_16BIT
+#define WIDTH 320
+#else
+#define WIDTH 240
+#endif
+
+>>>>>>> MarlinFirmware/RC
 #define HEIGHT 64
 #define PAGE_HEIGHT 8
 
@@ -98,7 +107,11 @@ uint8_t u8g_dev_lc7981_320x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *
   switch(msg)
   {
     case U8G_DEV_MSG_INIT:
+<<<<<<< HEAD
       u8g_InitCom(u8g, dev);
+=======
+      u8g_InitCom(u8g, dev, U8G_SPI_CLK_CYCLE_NONE);
+>>>>>>> MarlinFirmware/RC
       u8g_WriteEscSeqP(u8g, dev, u8g_dev_lc7981_320x64_init_seq);
       break;
     case U8G_DEV_MSG_STOP:
@@ -143,3 +156,7 @@ uint8_t u8g_dev_lc7981_320x64_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *
 }
 
 U8G_PB_DEV(u8g_dev_lc7981_320x64_8bit, WIDTH, HEIGHT, PAGE_HEIGHT, u8g_dev_lc7981_320x64_fn, U8G_COM_FAST_PARALLEL);
+<<<<<<< HEAD
+=======
+
+>>>>>>> MarlinFirmware/RC

@@ -49,6 +49,15 @@
   u8g_Init8Bit(u8g, dev, d0, d1, d2, d3, d4, d5, d6, d7, en, cs1, cs2, di, rw, reset)
   u8g_Init8Bit(u8g, dev,  8,    9, 10, 11,   4,   5,   6,   7, 18, 14, 15, 17, 16, U8G_PIN_NONE)
 
+<<<<<<< HEAD
+=======
+  Update for ATOMIC operation done (01 Jun 2013)
+    U8G_ATOMIC_OR(ptr, val)
+    U8G_ATOMIC_AND(ptr, val)
+    U8G_ATOMIC_START();
+    U8G_ATOMIC_END();
+
+>>>>>>> MarlinFirmware/RC
 */
 
 #include "u8g.h"
@@ -114,7 +123,12 @@ static void u8g_com_arduino_fast_parallel_init(u8g_t *u8g)
   u8g_data_mask[7] =  digitalPinToBitMask(u8g->pin_list[U8G_PI_D7]);  
 }
 
+<<<<<<< HEAD
 void u8g_com_arduino_fast_write_data_pin(uint8_t pin, uint8_t val)
+=======
+/* atomic protection must be done by calling function */
+static void u8g_com_arduino_fast_write_data_pin(uint8_t pin, uint8_t val)
+>>>>>>> MarlinFirmware/RC
 {
   if ( val != 0 )
     *u8g_data_port[pin] |= u8g_data_mask[pin];
@@ -125,6 +139,10 @@ void u8g_com_arduino_fast_write_data_pin(uint8_t pin, uint8_t val)
 
 void u8g_com_arduino_fast_parallel_write(u8g_t *u8g, uint8_t val)
 {
+<<<<<<< HEAD
+=======
+  U8G_ATOMIC_START();
+>>>>>>> MarlinFirmware/RC
   u8g_com_arduino_fast_write_data_pin( 0, val&1 );
   val >>= 1;
   u8g_com_arduino_fast_write_data_pin( 1, val&1 );
@@ -142,6 +160,10 @@ void u8g_com_arduino_fast_parallel_write(u8g_t *u8g, uint8_t val)
   val >>= 1;
   u8g_com_arduino_fast_write_data_pin( 7, val&1 );
   val >>= 1;
+<<<<<<< HEAD
+=======
+  U8G_ATOMIC_END();
+>>>>>>> MarlinFirmware/RC
   
   /* EN cycle time must be 1 micro second */
   u8g_com_arduino_digital_write(u8g, U8G_PI_EN, HIGH);

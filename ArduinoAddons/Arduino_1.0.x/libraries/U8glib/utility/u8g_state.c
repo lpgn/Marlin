@@ -64,6 +64,18 @@ void u8g_SetHardwareBackup(u8g_t *u8g, u8g_state_cb backup_cb)
 
 
 /*===============================================================*/
+<<<<<<< HEAD
+=======
+/* register variable for restoring interrupt state */
+
+#if defined(__AVR__)
+uint8_t global_SREG_backup;
+#endif
+
+
+
+/*===============================================================*/
+>>>>>>> MarlinFirmware/RC
 /* AVR */
 
 #if defined(__AVR__)
@@ -82,7 +94,11 @@ void u8g_SetHardwareBackup(u8g_t *u8g, u8g_state_cb backup_cb)
 #include <avr/interrupt.h>
 static uint8_t u8g_state_avr_spi_memory[2];
 
+<<<<<<< HEAD
 void u8g_backup_avr_spi(uint8_t msg)
+=======
+void u8g_backup_spi(uint8_t msg)
+>>>>>>> MarlinFirmware/RC
 {
   if ( U8G_STATE_MSG_IS_BACKUP(msg) )
   {
@@ -98,5 +114,55 @@ void u8g_backup_avr_spi(uint8_t msg)
   }
 }
 
+<<<<<<< HEAD
+=======
+#elif defined (U8G_RASPBERRY_PI)
+
+#include <stdio.h>
+
+void u8g_backup_spi(uint8_t msg) {
+  printf("u8g_backup_spi %d\r\n",msg);
+}
+
+#elif defined(ARDUINO) && defined(__SAM3X8E__)		// Arduino Due, maybe we should better check for __SAM3X8E__
+
+#include "sam.h"
+
+struct sam_backup_struct
+{
+  uint32_t mr;
+  uint32_t sr;
+  uint32_t csr[4];  
+} sam_backup[2];
+
+void u8g_backup_spi(uint8_t msg)
+{
+  uint8_t idx = U8G_STATE_MSG_GET_IDX(msg);
+  if ( U8G_STATE_MSG_IS_BACKUP(msg) )
+  {
+    sam_backup[idx].mr = SPI0->SPI_MR;
+    sam_backup[idx].sr = SPI0->SPI_SR;
+    sam_backup[idx].csr[0] = SPI0->SPI_CSR[0];
+    sam_backup[idx].csr[1] = SPI0->SPI_CSR[1];
+    sam_backup[idx].csr[2] = SPI0->SPI_CSR[2];
+    sam_backup[idx].csr[3] = SPI0->SPI_CSR[3];
+  }
+  else
+  {
+    SPI0->SPI_MR = sam_backup[idx].mr;
+    SPI0->SPI_CSR[0] = sam_backup[idx].csr[0];
+    SPI0->SPI_CSR[1] = sam_backup[idx].csr[1];
+    SPI0->SPI_CSR[2] = sam_backup[idx].csr[2];
+    SPI0->SPI_CSR[3] = sam_backup[idx].csr[3];
+  }
+}
+
+#else
+
+void u8g_backup_spi(uint8_t msg)
+{
+}
+
+>>>>>>> MarlinFirmware/RC
 #endif
 

@@ -65,7 +65,11 @@ uint8_t u8g_dev_st7920_192x32_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *
   switch(msg)
   {
     case U8G_DEV_MSG_INIT:
+<<<<<<< HEAD
       u8g_InitCom(u8g, dev);
+=======
+      u8g_InitCom(u8g, dev, U8G_SPI_CLK_CYCLE_400NS);
+>>>>>>> MarlinFirmware/RC
       u8g_WriteEscSeqP(u8g, dev, u8g_dev_st7920_192x32_init_seq);
       break;
     case U8G_DEV_MSG_STOP:
@@ -103,7 +107,11 @@ uint8_t u8g_dev_st7920_192x32_4x_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, voi
   switch(msg)
   {
     case U8G_DEV_MSG_INIT:
+<<<<<<< HEAD
       u8g_InitCom(u8g, dev);
+=======
+      u8g_InitCom(u8g, dev, U8G_SPI_CLK_CYCLE_400NS);
+>>>>>>> MarlinFirmware/RC
       u8g_WriteEscSeqP(u8g, dev, u8g_dev_st7920_192x32_init_seq);
       break;
     case U8G_DEV_MSG_STOP:
