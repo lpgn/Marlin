@@ -2,8 +2,7 @@
 
   u8g_pb8h8.c
   
-  8 lines per page, horizontal, 8 bits per pixel
-  (22 May 2013: might also support any number of lines --> needs to be checked)
+  8 bits per pixel, horizontal
   
   Universal 8bit Graphics Library
   
@@ -52,26 +51,21 @@ u8g_dev_t name = { dev_fn, &u8g_index_color_8h8_pb, com_fn }
 
 #include "u8g.h"
 
-/*
 #define WIDTH_BITS 7
 #define WIDTH (1<<WIDTH_BITS)
 #define PAGE_HEIGHT_BITS 3
 #define PAGE_HEIGHT (1<<PAGE_HEIGHT_BITS)
-*/
 
 void u8g_pb8h8_Clear(u8g_pb_t *b)
 {
   uint8_t *ptr = (uint8_t *)b->buf;
   uint8_t *end_ptr = ptr;
   uint8_t cnt = b->p.page_height;
-  end_ptr += b->width*cnt;
-  /*
   do
   {
     end_ptr += b->width;
     cnt--;
   } while( cnt > 0 );
-  */
   do
   {
     *ptr++ = 0;
@@ -173,7 +167,7 @@ uint8_t u8g_dev_pb8h8_base_fn(u8g_t *u8g, u8g_dev_t *dev, uint8_t msg, void *arg
     case U8G_DEV_MSG_GET_HEIGHT:
       *((u8g_uint_t *)arg) = pb->p.total_height;
       break;
-    case U8G_DEV_MSG_SET_COLOR_ENTRY:
+    case U8G_DEV_MSG_SET_COLOR_INDEX:
       break;
     case U8G_DEV_MSG_SET_XY_CB:
       break;
