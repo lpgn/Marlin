@@ -69,19 +69,7 @@
 #define MSG_PID_I                           "PID-I: "
 #define MSG_PID_D                           "PID-D: "
 #define MSG_PID_C                           "PID-C: "
-<<<<<<< HEAD
-#define MSG_PID_P1                          "PID-P E2: "
-#define MSG_PID_I1                          "PID-I E2: "
-#define MSG_PID_D1                          "PID-D E2: "
-#define MSG_PID_C1                          "PID-C E2: "
-#define MSG_PID_P2                          "PID-P E3: "
-#define MSG_PID_I2                          "PID-I E3: "
-#define MSG_PID_D2                          "PID-D E3: "
-#define MSG_PID_C2                          "PID-C E3: "
-#define MSG_ACC                             "Acc:"
-=======
 #define MSG_ACC                             "Уск:"
->>>>>>> MarlinFirmware/RC
 #define MSG_VXY_JERK                        "Vxy-jerk: "
 #define MSG_VZ_JERK                         "Vz-jerk"
 #define MSG_VE_JERK                         "Ve-jerk"
