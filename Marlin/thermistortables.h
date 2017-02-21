@@ -1117,7 +1117,7 @@ const short temptable_70[][2] PROGMEM = {
 };
 #endif
 
-#if (THERMISTORHEATER_0 == 70) || (THERMISTORHEATER_1 == 70)  || (THERMISTORHEATER_2 == 70) || (THERMISTORBED == 70) //100k bed thermistor
+#if (THERMISTORHEATER_0 == 71) || (THERMISTORHEATER_1 == 71)  || (THERMISTORHEATER_2 == 71) || (THERMISTORBED == 71) //100k bed thermistor
 
 const short temptable_70[][2] PROGMEM = {
 {       23*OVERSAMPLENR ,       310     },
