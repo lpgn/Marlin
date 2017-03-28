@@ -75,6 +75,7 @@ enum DebugFlags {
   DEBUG_DRYRUN        = _BV(3), ///< Ignore temperature setting and E movement commands
   DEBUG_COMMUNICATION = _BV(4), ///< Not implemented
   DEBUG_LEVELING      = _BV(5), ///< Print detailed output for homing and leveling
+  DEBUG_MESH_ADJUST   = _BV(6), ///< UBL bed leveling
   DEBUG_ALL           = 0xFF
 };
 
@@ -143,7 +144,9 @@ enum TempState {
       FILAMENT_CHANGE_MESSAGE_EXTRUDE,
       FILAMENT_CHANGE_MESSAGE_OPTION,
       FILAMENT_CHANGE_MESSAGE_RESUME,
-      FILAMENT_CHANGE_MESSAGE_STATUS
+      FILAMENT_CHANGE_MESSAGE_STATUS,
+      FILAMENT_CHANGE_MESSAGE_CLICK_TO_HEAT_NOZZLE,
+      FILAMENT_CHANGE_MESSAGE_WAIT_FOR_NOZZLES_TO_HEAT
     };
   #endif
 #endif
@@ -162,20 +165,13 @@ enum TempState {
   };
 #endif
 
-#if ENABLED(MESH_BED_LEVELING)
-  enum MeshLevelingState {
-    MeshReport,
-    MeshStart,
-    MeshNext,
-    MeshSet,
-    MeshSetZOffset,
-    MeshReset
-  };
-
-  enum MBLStatus {
-    MBL_STATUS_NONE = 0,
-    MBL_STATUS_HAS_MESH_BIT = 0,
-    MBL_STATUS_ACTIVE_BIT = 1
+#if ENABLED(PROBE_MANUALLY)
+  enum ABLState {
+    ABLReport,
+    ABLStart,
+    ABLNext,
+    ABLSet,
+    ABLReset
   };
 #endif
 
