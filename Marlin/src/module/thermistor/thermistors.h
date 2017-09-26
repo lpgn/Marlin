@@ -123,8 +123,8 @@
 #if ANY_THERMISTOR_IS(999) // User-defined table 2
   #include "thermistor_999.h"
 #endif
-#if ANY_THERMISTOR_IS(2828) // User-defined table 3
-  #include "thermistortable_2828.h"
+#if ANY_THERMISTOR_IS(28) // User-defined table 3
+  #include "thermistor_28.h"
 #endif
 
 #define _TT_NAME(_N) temptable_ ## _N

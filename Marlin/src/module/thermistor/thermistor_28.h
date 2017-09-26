@@ -22,7 +22,7 @@
 
 // meu termistor chines
 
-const short temptable_2828[][2] PROGMEM = {
+const short temptable_28[][2] PROGMEM = {
 
 {       23*OVERSAMPLENR ,       310     },
 {       25*OVERSAMPLENR ,       305     },
@@ -86,4 +86,3 @@ const short temptable_2828[][2] PROGMEM = {
 {       1004*OVERSAMPLENR       ,       15       },
 {       1008*OVERSAMPLENR       ,       0       } //safety
 };
-#endif
