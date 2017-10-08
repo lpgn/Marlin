@@ -262,8 +262,8 @@
   #include "pins_DUE3DOM_MINI.h"
 #elif MB(RADDS)
   #include "pins_RADDS.h"
-#elif MB(RAMPS_FD)
-  #include "pins_RAMPS_FD.h"
+#elif MB(RAMPS_FD_V1)
+  #include "pins_RAMPS_FD_V1.h"
 #elif MB(RAMPS_FD_V2)
   #include "pins_RAMPS_FD_V2.h"
 #elif MB(RAMPS_SMART_EFB)
@@ -402,9 +402,6 @@
 #endif
 #ifndef SDPOWER
   #define SDPOWER -1
-#endif
-#ifndef SDSS
-  #define SDSS -1
 #endif
 #ifndef LED_PIN
   #define LED_PIN -1

@@ -632,7 +632,7 @@ static_assert(1 >= 0
   /**
    * Make sure Z raise values are set
    */
-  #if !defined(Z_CLEARANCE_DEPLOY_PROBE)
+  #ifndef Z_CLEARANCE_DEPLOY_PROBE
     #error "You must define Z_CLEARANCE_DEPLOY_PROBE in your configuration."
   #elif !defined(Z_CLEARANCE_BETWEEN_PROBES)
     #error "You must define Z_CLEARANCE_BETWEEN_PROBES in your configuration."
@@ -958,28 +958,28 @@ static_assert(1 >= 0
           #error "TEMP_4_PIN not defined for this board."
         #endif
       #elif TEMP_SENSOR_4 != 0
-        #error "TEMP_SENSOR_4 shouldn't be set with only 4 extruders."
+        #error "TEMP_SENSOR_4 shouldn't be set with only 4 HOTENDS."
       #endif
     #elif TEMP_SENSOR_3 != 0
-      #error "TEMP_SENSOR_3 shouldn't be set with only 3 extruders."
+      #error "TEMP_SENSOR_3 shouldn't be set with only 3 HOTENDS."
     #elif TEMP_SENSOR_4 != 0
-      #error "TEMP_SENSOR_4 shouldn't be set with only 3 extruders."
+      #error "TEMP_SENSOR_4 shouldn't be set with only 3 HOTENDS."
     #endif
   #elif TEMP_SENSOR_2 != 0
-    #error "TEMP_SENSOR_2 shouldn't be set with only 2 extruders."
+    #error "TEMP_SENSOR_2 shouldn't be set with only 2 HOTENDS."
   #elif TEMP_SENSOR_3 != 0
-    #error "TEMP_SENSOR_3 shouldn't be set with only 2 extruders."
+    #error "TEMP_SENSOR_3 shouldn't be set with only 2 HOTENDS."
   #elif TEMP_SENSOR_4 != 0
-    #error "TEMP_SENSOR_4 shouldn't be set with only 2 extruders."
+    #error "TEMP_SENSOR_4 shouldn't be set with only 2 HOTENDS."
   #endif
 #elif TEMP_SENSOR_1 != 0 && DISABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-  #error "TEMP_SENSOR_1 shouldn't be set with only 1 extruder."
+  #error "TEMP_SENSOR_1 shouldn't be set with only 1 HOTEND."
 #elif TEMP_SENSOR_2 != 0
-  #error "TEMP_SENSOR_2 shouldn't be set with only 1 extruder."
+  #error "TEMP_SENSOR_2 shouldn't be set with only 1 HOTEND."
 #elif TEMP_SENSOR_3 != 0
-  #error "TEMP_SENSOR_3 shouldn't be set with only 1 extruder."
+  #error "TEMP_SENSOR_3 shouldn't be set with only 1 HOTEND."
 #elif TEMP_SENSOR_4 != 0
-  #error "TEMP_SENSOR_4 shouldn't be set with only 1 extruder."
+  #error "TEMP_SENSOR_4 shouldn't be set with only 1 HOTEND."
 #endif
 
 #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT) && TEMP_SENSOR_1 == 0
