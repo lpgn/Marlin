@@ -29,8 +29,6 @@
 
 #include "thermistor/thermistors.h"
 
-#include "../inc/MarlinConfig.h"
-
 #if ENABLED(BABYSTEPPING)
   extern bool axis_known_position[XYZ];
 #endif
@@ -90,6 +88,17 @@ enum ADCSensorState {
 
 #define ACTUAL_ADC_SAMPLES max(int(MIN_ADC_ISR_LOOPS), int(SensorsReady))
 
+#if HAS_PID_HEATING
+  #define PID_K2 (1.0-PID_K1)
+  #define PID_dT ((OVERSAMPLENR * float(ACTUAL_ADC_SAMPLES)) / (F_CPU / 64.0 / 256.0))
+
+  // Apply the scale factors to the PID values
+  #define scalePID_i(i)   ( (i) * PID_dT )
+  #define unscalePID_i(i) ( (i) / PID_dT )
+  #define scalePID_d(d)   ( (d) / PID_dT )
+  #define unscalePID_d(d) ( (d) * PID_dT )
+#endif
+
 #if !HAS_HEATER_BED
   constexpr int16_t target_temperature_bed = 0;
 #endif
@@ -118,10 +127,6 @@ class Temperature {
                      soft_pwm_count_fan[FAN_COUNT];
     #endif
 
-    #if ENABLED(PIDTEMP) || ENABLED(PIDTEMPBED)
-      #define PID_dT ((OVERSAMPLENR * float(ACTUAL_ADC_SAMPLES)) / TEMP_TIMER_FREQUENCY)
-    #endif
-
     #if ENABLED(PIDTEMP)
 
       #if ENABLED(PID_PARAMS_PER_HOTEND) && HOTENDS > 1
@@ -141,12 +146,6 @@ class Temperature {
         #define PID_PARAM(param, h) Temperature::param
 
       #endif // PID_PARAMS_PER_HOTEND
-
-      // Apply the scale factors to the PID values
-      #define scalePID_i(i)   ( (i) * PID_dT )
-      #define unscalePID_i(i) ( (i) / PID_dT )
-      #define scalePID_d(d)   ( (d) / PID_dT )
-      #define unscalePID_d(d) ( (d) * PID_dT )
 
     #endif
 
@@ -363,14 +362,14 @@ class Temperature {
     static int16_t degTargetBed() { return target_temperature_bed; }
 
     #if WATCH_HOTENDS
-      static void start_watching_heater(uint8_t e = 0);
+      static void start_watching_heater(const uint8_t e = 0);
     #endif
 
     #if WATCH_THE_BED
       static void start_watching_bed();
     #endif
 
-    static void setTargetHotend(const int16_t celsius, uint8_t e) {
+    static void setTargetHotend(const int16_t celsius, const uint8_t e) {
       #if HOTENDS == 1
         UNUSED(e);
       #endif
@@ -431,17 +430,24 @@ class Temperature {
      * Perform auto-tuning for hotend or bed in response to M303
      */
     #if HAS_PID_HEATING
-      static void PID_autotune(float temp, int hotend, int ncycles, bool set_result=false);
-    #endif
+      static void PID_autotune(const float temp, const int8_t hotend, const int8_t ncycles, const bool set_result=false);
 
-    /**
-     * Update the temp manager when PID values change
-     */
-    static void updatePID();
+      /**
+       * Update the temp manager when PID values change
+       */
+      #if ENABLED(PIDTEMP)
+        FORCE_INLINE static void updatePID() {
+          #if ENABLED(PID_EXTRUSION_SCALING)
+            last_e_position = 0;
+          #endif
+        }
+      #endif
+
+    #endif
 
     #if ENABLED(BABYSTEPPING)
 
-      static void babystep_axis(const AxisEnum axis, const int distance) {
+      static void babystep_axis(const AxisEnum axis, const int16_t distance) {
         if (axis_known_position[axis]) {
           #if IS_CORE
             #if ENABLED(BABYSTEP_XY)
@@ -542,7 +548,7 @@ class Temperature {
   private:
 
     #if ENABLED(FAST_PWM_FAN)
-      static void setPwmFrequency(const uint8_t pin, int val);
+      static void setPwmFrequency(const pin_t pin, int val);
     #endif
 
     static void set_current_temp_raw();
@@ -569,7 +575,7 @@ class Temperature {
 
       typedef enum TRState { TRInactive, TRFirstHeating, TRStable, TRRunaway } TRstate;
 
-      static void thermal_runaway_protection(TRState* state, millis_t* timer, float temperature, float target_temperature, int heater_id, int period_seconds, int hysteresis_degc);
+      static void thermal_runaway_protection(TRState * const state, millis_t * const timer, const float current, const float target, const int8_t heater_id, const uint16_t period_seconds, const uint16_t hysteresis_degc);
 
       #if ENABLED(THERMAL_PROTECTION_HOTENDS)
         static TRState thermal_runaway_state_machine[HOTENDS];
