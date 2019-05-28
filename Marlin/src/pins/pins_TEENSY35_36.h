@@ -1,15 +1,33 @@
+/**
+ * Marlin 3D Printer Firmware
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ *
+ * Based on Sprinter and grbl.
+ * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 /****************************************************************************************
 * Teensy 3.5 (MK64FX512) and Teensy 3.6 (MK66FX1M0) Breadboard pin assignments
 * Requires the Teensyduino software with Teensy 3.5 or Teensy 3.6 selected in Arduino IDE!
 * http://www.pjrc.com/teensy/teensyduino.html
-*
 ****************************************************************************************/
-#if MOTHERBOARD == 841 // BOARD_TEENSY35_36
-#define KNOWN_BOARD 1
-#define AT90USB 1286  // Disable MarlinSerial etc.
 
 #if !IS_32BIT_TEENSY
-  #error Oops!  Make sure you have 'Teensy 3.5' or 'Teensy 3.6' selected from the 'Tools -> Boards' menu.
+  #error "Oops! Select 'Teensy 3.5' or 'Teensy 3.6' in 'Tools > Board.'"
 #endif
 
 #if IS_TEENSY35
@@ -18,12 +36,11 @@
   #define BOARD_NAME "Teensy3.6"
 #endif
 
-#define LARGE_FLASH        true
+#define AT90USB 1286   // Disable MarlinSerial etc.
 #define USBCON //1286  // Disable MarlinSerial etc.
-
 /*
-teemuatlut plan for Teensy3.5 and Teensy3.6:
 
+  teemuatlut plan for Teensy3.5 and Teensy3.6:
                                                      USB
                                           GND |-----#####-----| VIN 5V
       X_STEP_PIN          MOSI1   RX1       0 |     #####     | Analog GND
@@ -45,7 +62,7 @@ AUX2                                       25 |   41 * * 52   |    A21 DAC0
 AUX2  FAN_PIN             SCL2    TX1      26 |   42 * * 51   | 39 A20      MISO0             SDSS
 AUX2  Z-PROBE PWR         SCK0    RX1      27 | *  *  *  *  * | 38 A19 PWM        SDA1
 AUX2  SOL1_PIN            MOSI0            28 |   43 * * 50   | 37 A18 PWM        SCL1
-D10   CONTROLLERFAN_PIN   CAN0TX       PWM 29 |   44 * * 49   | 36 A17 PWM
+D10   CONTROLLER_FAN_PIN  CAN0TX       PWM 29 |   44 * * 49   | 36 A17 PWM
 D9    HEATER_0_PIN        CAN0RX       PWM 30 |   45 * * 48   | 35 A16 PWM                    E1_ENABLE_PIN
 D8    HEATER_BED_PIN      CS1     RX4  A12 31 |   46 * * 47   | 34 A15 PWM        SDA0  RX5   E1_DIR_PIN
                           SCK1    TX4  A13 32 |__GND_*_*_3.3V_| 33 A14 PWM        SCL0  TX5   E1_STEP_PIN
@@ -62,6 +79,16 @@ D8    HEATER_BED_PIN      CS1     RX4  A12 31 |   46 * * 47   | 34 A15 PWM      
 
 */
 
+//
+// Limit Switches
+//
+#define X_STOP_PIN         24
+#define Y_STOP_PIN         26
+#define Z_STOP_PIN         28
+
+//
+// Steppers
+//
 #define X_STEP_PIN         22
 #define X_DIR_PIN          21
 #define X_ENABLE_PIN       39
@@ -84,47 +111,51 @@ D8    HEATER_BED_PIN      CS1     RX4  A12 31 |   46 * * 47   | 34 A15 PWM      
 
 #define HEATER_0_PIN       30
 #define HEATER_1_PIN       36
-#define HEATER_2_PIN       -1
 #define HEATER_BED_PIN     31
-#define FAN_PIN             2
+#ifndef FAN_PIN
+  #define FAN_PIN           2
+#endif
 
-#define X_STOP_PIN         24
-#define Y_STOP_PIN         26
-#define Z_STOP_PIN         28
-
-#define TEMP_0_PIN          2 // Extruder / Analog pin numbering: 2 => A2
-#define TEMP_BED_PIN        1 // Bed / Analog pin numbering
+#define TEMP_0_PIN          2   // Extruder / Analog pin numbering: 2 => A2
 #define TEMP_1_PIN          0
-#define TEMP_2_PIN         -1
+#define TEMP_BED_PIN        1   // Bed / Analog pin numbering
 
-#define SDPOWER            -1
-#define SD_DETECT_PIN      -1
-#define SDSS               39 // 8
+#define SDSS               39   // 8
 #define LED_PIN            13
 #define PS_ON_PIN           1
-#define KILL_PIN           -1
 #define ALARM_PIN          -1
 
 #define FILWIDTH_PIN        6
 #define SOL1_PIN           28
 
+#if 0
+// Pretty sure this is obsolete!
+// Please use Marlin 1.1.x pins files as reference for new pins files.
 #ifndef SDSUPPORT
   // these are defined in the SD library if building with SD support
   #define SCK_PIN          13
   #define MISO_PIN         12
   #define MOSI_PIN         11
 #endif
+#endif
 
-#ifdef ULTRA_LCD
+#if ENABLED(ULTRA_LCD)
   #define LCD_PINS_RS      40
   #define LCD_PINS_ENABLE  41
   #define LCD_PINS_D4      42
   #define LCD_PINS_D5      43
   #define LCD_PINS_D6      44
   #define LCD_PINS_D7      45
+#endif
+
+#if ENABLED(NEWPANEL)
   #define BTN_EN1          46
   #define BTN_EN2          47
   #define BTN_ENC          48
 #endif
 
-#endif  // MOTHERBOARD == 841 (Teensy3.5 and Teensy3.6)
+#if ENABLED(REPRAPWORLD_KEYPAD)
+  #define SHIFT_OUT        40
+  #define SHIFT_CLK        44
+  #define SHIFT_LD         42
+#endif

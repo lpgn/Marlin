@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -24,39 +24,45 @@
 #include "../../Marlin.h" // for pin_is_protected
 #include "../../inc/MarlinConfig.h"
 
+#if FAN_COUNT > 0
+  #include "../../module/temperature.h"
+#endif
+
 /**
  * M42: Change pin status via GCode
  *
  *  P<pin>  Pin number (LED if omitted)
+ *          For LPC1768 specify pin P1_02 as M42 P102,
+ *                                  P1_20 as M42 P120, etc.
+ *
  *  S<byte> Pin status from 0 - 255
+ *  I       Flag to ignore Marlin's pin protection
  */
 void GcodeSuite::M42() {
   if (!parser.seenval('S')) return;
   const byte pin_status = parser.value_byte();
 
-  const int pin_number = parser.intval('P', LED_PIN);
-  if (pin_number < 0) return;
+  const int pin_index = PARSED_PIN_INDEX('P', GET_PIN_MAP_INDEX(LED_PIN));
+  if (pin_index < 0) return;
 
-  if (pin_is_protected(pin_number)) {
-    SERIAL_ERROR_START();
-    SERIAL_ERRORLNPGM(MSG_ERR_PROTECTED_PIN);
-    return;
-  }
+  const pin_t pin = GET_PIN_MAP_PIN(pin_index);
 
-  pinMode(pin_number, OUTPUT);
-  digitalWrite(pin_number, pin_status);
-  analogWrite(pin_number, pin_status);
+  if (!parser.boolval('I') && pin_is_protected(pin)) return protected_pin_err();
+
+  pinMode(pin, OUTPUT);
+  extDigitalWrite(pin, pin_status);
+  analogWrite(pin, pin_status);
 
   #if FAN_COUNT > 0
-    switch (pin_number) {
+    switch (pin) {
       #if HAS_FAN0
-        case FAN_PIN: fanSpeeds[0] = pin_status; break;
+        case FAN_PIN: thermalManager.fan_speed[0] = pin_status; break;
       #endif
       #if HAS_FAN1
-        case FAN1_PIN: fanSpeeds[1] = pin_status; break;
+        case FAN1_PIN: thermalManager.fan_speed[1] = pin_status; break;
       #endif
       #if HAS_FAN2
-        case FAN2_PIN: fanSpeeds[2] = pin_status; break;
+        case FAN2_PIN: thermalManager.fan_speed[2] = pin_status; break;
       #endif
     }
   #endif

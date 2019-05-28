@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,14 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * queue.h - The G-code command queue, which holds commands before they
  *           go to the parser and dispatcher.
  */
-
-#ifndef GCODE_QUEUE_H
-#define GCODE_QUEUE_H
 
 #include "../inc/MarlinConfig.h"
 
@@ -50,6 +48,13 @@ extern uint8_t commands_in_queue, // Count of commands in the queue
                cmd_queue_index_r; // Ring buffer read position
 
 extern char command_queue[BUFSIZE][MAX_CMD_SIZE];
+
+/*
+ * The port that the command was received on
+ */
+#if NUM_SERIAL > 1
+  extern int16_t command_queue_port[BUFSIZE];
+#endif
 
 /**
  * Initialization of queue for setup()
@@ -83,12 +88,28 @@ void ok_to_send();
  * Aborts the current queue, if any.
  * Note: drain_injected_commands_P() must be called repeatedly to drain the commands afterwards
  */
-void enqueue_and_echo_commands_P(const char * const pgcode);
+void enqueue_and_echo_commands_P(PGM_P const pgcode);
 
 /**
  * Enqueue with Serial Echo
  */
-bool enqueue_and_echo_command(const char* cmd, bool say_ok=false);
+bool enqueue_and_echo_command(const char* cmd);
+
+#define HAS_LCD_QUEUE_NOW (ENABLED(MALYAN_LCD) || (HAS_LCD_MENU && ANY(AUTO_BED_LEVELING_UBL, PID_AUTOTUNE_MENU, ADVANCED_PAUSE_FEATURE)))
+#define HAS_QUEUE_NOW (ENABLED(SDSUPPORT) || HAS_LCD_QUEUE_NOW)
+
+#if HAS_QUEUE_NOW
+  /**
+   * Enqueue and return only when commands are actually enqueued
+   */
+  void enqueue_and_echo_command_now(const char* cmd);
+  #if HAS_LCD_QUEUE_NOW
+    /**
+     * Enqueue from program memory and return only when commands are actually enqueued
+     */
+    void enqueue_and_echo_commands_now_P(PGM_P const cmd);
+  #endif
+#endif
 
 /**
  * Add to the circular command queue the next command from:
@@ -102,5 +123,3 @@ void get_available_commands();
  * Get the next command in the queue, optionally log it to SD, then dispatch it
  */
 void advance_command_queue();
-
-#endif // GCODE_QUEUE_H

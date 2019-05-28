@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -25,12 +25,10 @@
  */
 
 #ifndef __AVR_ATmega2560__
-  #error "Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu."
+  #error "Oops! Select 'Arduino/Genuino Mega or Mega 2560' in 'Tools > Board.'"
 #endif
 
-#define BOARD_NAME         "Megatronics"
-#define LARGE_FLASH        true
-
+#define BOARD_NAME "Megatronics"
 //
 // Limit Switches
 //
@@ -55,13 +53,13 @@
 #define X_DIR_PIN          28
 #define X_ENABLE_PIN       24
 
-#define Y_STEP_PIN         60 // A6
-#define Y_DIR_PIN          61 // A7
+#define Y_STEP_PIN         60   // A6
+#define Y_DIR_PIN          61   // A7
 #define Y_ENABLE_PIN       22
 
-#define Z_STEP_PIN         54 // A0
-#define Z_DIR_PIN          55 // A1
-#define Z_ENABLE_PIN       56 // A2
+#define Z_STEP_PIN         54   // A0
+#define Z_DIR_PIN          55   // A1
+#define Z_ENABLE_PIN       56   // A2
 
 #define E0_STEP_PIN        31
 #define E0_DIR_PIN         32
@@ -89,7 +87,9 @@
 #define HEATER_1_PIN        8
 #define HEATER_BED_PIN     10
 
-#define FAN_PIN             7   // IO pin. Buffer needed
+#ifndef FAN_PIN
+  #define FAN_PIN           7   // IO pin. Buffer needed
+#endif
 
 //
 // Misc. Functions
@@ -104,7 +104,7 @@
 //
 #define BEEPER_PIN         33
 
-#if ENABLED(ULTRA_LCD) && ENABLED(NEWPANEL)
+#if BOTH(ULTRA_LCD, NEWPANEL)
 
   #define LCD_PINS_RS     16
   #define LCD_PINS_ENABLE 17
@@ -125,6 +125,6 @@
 //
 // M3/M4/M5 - Spindle/Laser Control
 //
-#define SPINDLE_LASER_PWM_PIN     3  // MUST BE HARDWARE PWM
-#define SPINDLE_LASER_ENABLE_PIN  4  // Pin should have a pullup!
+#define SPINDLE_LASER_PWM_PIN     3   // MUST BE HARDWARE PWM
+#define SPINDLE_LASER_ENA_PIN     4   // Pin should have a pullup!
 #define SPINDLE_DIR_PIN          11

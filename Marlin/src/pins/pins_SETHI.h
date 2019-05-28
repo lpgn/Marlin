@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -50,13 +50,13 @@
  */
 
 #if !defined(__AVR_ATmega644P__) && !defined(__AVR_ATmega644__) && !defined(__AVR_ATmega1284P__)
-  #error "Oops!  Make sure you have 'Sethi 3D' selected from the 'Tools -> Boards' menu."
+  #error "Oops! Select 'Sanguino' in 'Tools > Boards' and 'ATmega644', 'ATmega644P', or 'ATmega1284P' in 'Tools > Processor.'"
 #endif
 
 #define BOARD_NAME "Sethi 3D_1"
 
 #ifndef GEN7_VERSION
-  #define GEN7_VERSION 12 // v1.x
+  #define GEN7_VERSION 12   // v1.x
 #endif
 
 //
@@ -98,12 +98,13 @@
 #define HEATER_0_PIN        4
 #define HEATER_BED_PIN      3
 
-
-#if GEN7_VERSION >= 13
-  // Gen7 v1.3 removed the fan pin
-  #define FAN_PIN          -1
-#else
-  #define FAN_PIN          31
+#ifndef FAN_PIN
+  #if GEN7_VERSION >= 13
+    // Gen7 v1.3 removed the fan pin
+    #define FAN_PIN          -1
+  #else
+    #define FAN_PIN          31
+  #endif
 #endif
 
 //

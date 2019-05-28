@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -37,12 +37,12 @@
  * With PID_EXTRUSION_SCALING:
  *
  *   C[float] Kc term
- *   L[float] LPQ length
+ *   L[int] LPQ length
  */
 void GcodeSuite::M301() {
 
   // multi-extruder PID patch: M301 updates or prints a single extruder's PID values
-  // default behaviour (omitting E parameter) is to update for extruder 0 only
+  // default behavior (omitting E parameter) is to update for extruder 0 only
   const uint8_t e = parser.byteval('E'); // extruder being updated
 
   if (e < HOTENDS) { // catch bad input value
@@ -51,8 +51,9 @@ void GcodeSuite::M301() {
     if (parser.seen('D')) PID_PARAM(Kd, e) = scalePID_d(parser.value_float());
     #if ENABLED(PID_EXTRUSION_SCALING)
       if (parser.seen('C')) PID_PARAM(Kc, e) = parser.value_float();
-      if (parser.seen('L')) lpq_len = parser.value_float();
-      NOMORE(lpq_len, LPQ_MAX_LEN);
+      if (parser.seenval('L')) thermalManager.lpq_len = parser.value_int();
+      NOMORE(thermalManager.lpq_len, LPQ_MAX_LEN);
+      NOLESS(thermalManager.lpq_len, 0);
     #endif
 
     thermalManager.updatePID();
@@ -69,10 +70,8 @@ void GcodeSuite::M301() {
     #endif
     SERIAL_EOL();
   }
-  else {
-    SERIAL_ERROR_START();
-    SERIAL_ERRORLN(MSG_INVALID_EXTRUDER);
-  }
+  else
+    SERIAL_ERROR_MSG(MSG_INVALID_EXTRUDER);
 }
 
 #endif // PIDTEMP

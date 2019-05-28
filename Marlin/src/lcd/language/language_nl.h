@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Dutch
@@ -27,10 +28,9 @@
  * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
-#ifndef LANGUAGE_NL_H
-#define LANGUAGE_NL_H
 
 #define DISPLAY_CHARSET_ISO10646_1
+#define NOT_EXTENDED_ISO10646_1_5X7
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" gereed.")
 #define MSG_BACK                            _UxGT("Terug")
@@ -53,18 +53,18 @@
 #define MSG_SET_HOME_OFFSETS                _UxGT("Zet home offsets")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("H offset toegep.")
 #define MSG_SET_ORIGIN                      _UxGT("Nulpunt instellen")
-#define MSG_PREHEAT_1                       _UxGT("PLA voorverwarmen")
-#define MSG_PREHEAT_1_N                     _UxGT("PLA voorverw. ")
+#define MSG_PREHEAT_1                       _UxGT(PREHEAT_1_LABEL " voorverwarmen")
+#define MSG_PREHEAT_1_N                     _UxGT(PREHEAT_1_LABEL " voorverw. ")
 #define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1_N _UxGT("aan")
 #define MSG_PREHEAT_1_END                   MSG_PREHEAT_1 _UxGT(" Einde")
 #define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1_N _UxGT("Bed")
-#define MSG_PREHEAT_1_SETTINGS              _UxGT("PLA verw. conf")
-#define MSG_PREHEAT_2                       _UxGT("ABS voorverwarmen")
-#define MSG_PREHEAT_2_N                     _UxGT("ABS voorverw. ")
+#define MSG_PREHEAT_1_SETTINGS              _UxGT(PREHEAT_1_LABEL " verw. conf")
+#define MSG_PREHEAT_2                       _UxGT(PREHEAT_2_LABEL " voorverwarmen")
+#define MSG_PREHEAT_2_N                     _UxGT(PREHEAT_2_LABEL " voorverw. ")
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2_N _UxGT("aan")
 #define MSG_PREHEAT_2_END                   MSG_PREHEAT_2 _UxGT(" Einde")
 #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2_N _UxGT("Bed")
-#define MSG_PREHEAT_2_SETTINGS              _UxGT("ABS verw. conf")
+#define MSG_PREHEAT_2_SETTINGS              _UxGT(PREHEAT_2_LABEL " verw. conf")
 #define MSG_COOLDOWN                        _UxGT("Afkoelen")
 #define MSG_SWITCH_PS_ON                    _UxGT("Stroom aan")
 #define MSG_SWITCH_PS_OFF                   _UxGT("Stroom uit")
@@ -73,6 +73,7 @@
 #define MSG_MOVE_AXIS                       _UxGT("As verplaatsen")
 #define MSG_BED_LEVELING                    _UxGT("Bed Leveling")
 #define MSG_LEVEL_BED                       _UxGT("Level bed")
+
 #define MSG_MOVING                          _UxGT("Verplaatsen...")
 #define MSG_FREE_XY                         _UxGT("Vrij XY")
 #define MSG_MOVE_X                          _UxGT("Verplaats X")
@@ -93,8 +94,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Fact")
 #define MSG_AUTOTEMP                        _UxGT("Autotemp")
-#define MSG_ON                              _UxGT("Aan ")
-#define MSG_OFF                             _UxGT("Uit")
+#define MSG_LCD_ON                          _UxGT("Aan")
+#define MSG_LCD_OFF                         _UxGT("Uit")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -102,9 +103,15 @@
 #define MSG_SELECT                          _UxGT("Selecteer")
 #define MSG_ACC                             _UxGT("Versn")
 #define MSG_JERK                            _UxGT("Jerk")
-#define MSG_VX_JERK                         _UxGT("Vx-jerk")
-#define MSG_VY_JERK                         _UxGT("Vy-jerk")
-#define MSG_VZ_JERK                         _UxGT("Vz-jerk")
+#if IS_KINEMATIC
+  #define MSG_VA_JERK                       _UxGT("Va-jerk")
+  #define MSG_VB_JERK                       _UxGT("Vb-jerk")
+  #define MSG_VC_JERK                       _UxGT("Vc-jerk")
+#else
+  #define MSG_VA_JERK                       _UxGT("Vx-jerk")
+  #define MSG_VB_JERK                       _UxGT("Vy-jerk")
+  #define MSG_VC_JERK                       _UxGT("Vz-jerk")
+#endif
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
 #define MSG_VMAX                            _UxGT("Vmax ")
 #define MSG_VMIN                            _UxGT("Vmin")
@@ -113,15 +120,22 @@
 #define MSG_A_RETRACT                       _UxGT("A-retract")
 #define MSG_A_TRAVEL                        _UxGT("A-travel")
 #define MSG_STEPS_PER_MM                    _UxGT("Steps/mm")
-#define MSG_XSTEPS                          _UxGT("Xsteps/mm")
-#define MSG_YSTEPS                          _UxGT("Ysteps/mm")
-#define MSG_ZSTEPS                          _UxGT("Zsteps/mm")
+#if IS_KINEMATIC
+  #define MSG_ASTEPS                        _UxGT("Asteps/mm")
+  #define MSG_BSTEPS                        _UxGT("Bsteps/mm")
+  #define MSG_CSTEPS                        _UxGT("Csteps/mm")
+#else
+  #define MSG_ASTEPS                        _UxGT("Xsteps/mm")
+  #define MSG_BSTEPS                        _UxGT("Ysteps/mm")
+  #define MSG_CSTEPS                        _UxGT("Zsteps/mm")
+#endif
 #define MSG_ESTEPS                          _UxGT("Esteps/mm")
 #define MSG_E1STEPS                         _UxGT("E1steps/mm")
 #define MSG_E2STEPS                         _UxGT("E2steps/mm")
 #define MSG_E3STEPS                         _UxGT("E3steps/mm")
 #define MSG_E4STEPS                         _UxGT("E4steps/mm")
 #define MSG_E5STEPS                         _UxGT("E5steps/mm")
+#define MSG_E6STEPS                         _UxGT("E6steps/mm")
 #define MSG_TEMPERATURE                     _UxGT("Temperatuur")
 #define MSG_MOTION                          _UxGT("Beweging")
 #define MSG_FILAMENT                        _UxGT("Filament")
@@ -143,7 +157,6 @@
 #define MSG_NO_CARD                         _UxGT("Geen SD kaart")
 #define MSG_DWELL                           _UxGT("Slapen...")
 #define MSG_USERWAIT                        _UxGT("Wachten...")
-#define MSG_RESUMING                        _UxGT("Print hervatten")
 #define MSG_PRINT_ABORTED                   _UxGT("Print afgebroken")
 #define MSG_NO_MOVE                         _UxGT("Geen beweging.")
 #define MSG_KILLED                          _UxGT("Afgebroken. ")
@@ -151,14 +164,14 @@
 #define MSG_CONTROL_RETRACT                 _UxGT("Retract mm")  //accepted English term in Dutch
 #define MSG_CONTROL_RETRACT_SWAP            _UxGT("Ruil Retract mm")
 #define MSG_CONTROL_RETRACTF                _UxGT("Retract  F")
-#define MSG_CONTROL_RETRACT_ZLIFT           _UxGT("Hop mm")
+#define MSG_CONTROL_RETRACT_ZHOP            _UxGT("Hop mm")
 #define MSG_CONTROL_RETRACT_RECOVER         _UxGT("UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("Ruil UnRet mm")
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("UnRet  F")
 #define MSG_AUTORETRACT                     _UxGT("AutoRetr.")
 #define MSG_FILAMENTCHANGE                  _UxGT("Verv. Filament")
 #define MSG_INIT_SDCARD                     _UxGT("Init. SD kaart")
-#define MSG_CNG_SDCARD                      _UxGT("Verv. SD Kaart")
+#define MSG_CHANGE_SDCARD                   _UxGT("Verv. SD Kaart")
 #define MSG_ZPROBE_OUT                      _UxGT("Z probe uit. bed")
 #define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Zelf-Test")
 #define MSG_BLTOUCH_RESET                   _UxGT("Reset BLTouch")
@@ -176,16 +189,14 @@
 #define MSG_ERR_MINTEMP                     _UxGT("Err: Min. temp")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Err: Max.tmp bed")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Err: Min.tmp bed")
-#define MSG_ERR_Z_HOMING                    _UxGT("Fout Z homing")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("PRINTER GESTOPT")
 #define MSG_PLEASE_RESET                    _UxGT("Reset A.U.B.")
 #define MSG_SHORT_DAY                       _UxGT("d") //  One character only. Keep English standard
 #define MSG_SHORT_HOUR                      _UxGT("h") //  One character only
 #define MSG_SHORT_MINUTE                    _UxGT("m") //  One character only
 #define MSG_HEATING                         _UxGT("Voorwarmen...")
-#define MSG_HEATING_COMPLETE                _UxGT("Voorverw. kompl.")
-#define MSG_BED_HEATING                     _UxGT("Bed voorverw.")
-#define MSG_BED_DONE                        _UxGT("Bed is voorverw.")
+#define MSG_BED_HEATING                     _UxGT("Bed voorverw...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Delta Calibratie")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Kalibreer X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Kalibreer Y")
@@ -225,11 +236,7 @@
 #define MSG_DRIVE_STRENGTH                  _UxGT("Motorstroom")
 #define MSG_DAC_PERCENT                     _UxGT("Driver %")  //accepted English term in Dutch
 #define MSG_DAC_EEPROM_WRITE                _UxGT("DAC Opslaan")
-#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
-#define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
-#define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrudeer meer")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Hervat print")
-#define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Minimum Temp is ")
 #define MSG_FILAMENT_CHANGE_NOZZLE          _UxGT(" Nozzle: ") //accepeted English term
 //
 // Filament Change screens show up to 3 lines on a 4-line display
@@ -253,9 +260,6 @@
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Wacht voor")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("filament te")
   #define MSG_FILAMENT_CHANGE_LOAD_3          _UxGT("laden")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Wacht voor")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_2       _UxGT("filament te")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_3       _UxGT("extruderen")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Wacht voor print")
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("om verder")
   #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("te gaan")
@@ -272,10 +276,6 @@
   #define MSG_FILAMENT_CHANGE_INSERT_2        _UxGT("en druk knop")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Wacht voor")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("inladen...")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Wacht voor")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_2       _UxGT("extrudering")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Wacht voor")
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("printing...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_NL_H

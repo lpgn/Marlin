@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -22,7 +22,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if ENABLED(DIGIPOT_I2C) && ENABLED(DIGIPOT_MCP4018)
+#if BOTH(DIGIPOT_I2C, DIGIPOT_MCP4018)
 
 #include "../../core/enum.h"
 #include "Stream.h"
@@ -30,8 +30,6 @@
 #include <SlowSoftI2CMaster.h>  //https://github.com/stawel/SlowSoftI2CMaster
 
 // Settings for the I2C based DIGIPOT (MCP4018) based on WT150
-
-#define DIGIPOT_I2C_ADDRESS             0x2F
 
 #define DIGIPOT_A4988_Rsx               0.250
 #define DIGIPOT_A4988_Vrefmax           1.666
@@ -81,7 +79,7 @@ static SlowSoftI2CMaster pots[DIGIPOT_I2C_NUM_CHANNELS] = {
 
 static void i2c_send(const uint8_t channel, const byte v) {
   if (WITHIN(channel, 0, DIGIPOT_I2C_NUM_CHANNELS - 1)) {
-    pots[channel].i2c_start(((DIGIPOT_I2C_ADDRESS) << 1) | I2C_WRITE);
+    pots[channel].i2c_start(((DIGIPOT_I2C_ADDRESS_A) << 1) | I2C_WRITE);
     pots[channel].i2c_write(v);
     pots[channel].i2c_stop();
   }
@@ -89,7 +87,7 @@ static void i2c_send(const uint8_t channel, const byte v) {
 
 // This is for the MCP4018 I2C based digipot
 void digipot_i2c_set_current(const uint8_t channel, const float current) {
-  i2c_send(channel, current_to_wiper(min(max(current, 0.0f), float(DIGIPOT_A4988_MAX_CURRENT))));
+  i2c_send(channel, current_to_wiper(MIN(MAX(current, 0), float(DIGIPOT_A4988_MAX_CURRENT))));
 }
 
 void digipot_i2c_init() {

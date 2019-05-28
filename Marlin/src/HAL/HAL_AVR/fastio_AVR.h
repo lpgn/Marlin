@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,24 +19,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
- * Fast I/O Routines
+ * Fast I/O Routines for AVR
  * Use direct port manipulation to save scads of processor time.
- * Contributed by Triffid_Hunter. Modified by Kliment and the Marlin team.
+ * Contributed by Triffid_Hunter and modified by Kliment, thinkyhead, Bob-the-Kuhn, et.al.
  */
-
-#ifndef _FASTIO_ARDUINO_H
-#define _FASTIO_ARDUINO_H
 
 #include <avr/io.h>
 #include "../../core/macros.h"
 
-#define AVR_AT90USB1286_FAMILY (defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB1286P__) || defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB646P__)  || defined(__AVR_AT90USB647__))
+#define AVR_AT90USB1286_FAMILY (defined(__AVR_AT90USB1287__) || defined(__AVR_AT90USB1286__) || defined(__AVR_AT90USB1286P__) || defined(__AVR_AT90USB646__) || defined(__AVR_AT90USB646P__) || defined(__AVR_AT90USB647__))
 #define AVR_ATmega1284_FAMILY (defined(__AVR_ATmega644__) || defined(__AVR_ATmega644P__) || defined(__AVR_ATmega644PA__) || defined(__AVR_ATmega1284P__))
 #define AVR_ATmega2560_FAMILY (defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__))
 #define AVR_ATmega2561_FAMILY (defined(__AVR_ATmega1281__) || defined(__AVR_ATmega2561__))
-#define AVR_ATmega328_FAMILY (defined(__AVR_ATmega168__) || defined(__AVR_ATmega328__) || defined(__AVR_ATmega328p__))
+#define AVR_ATmega328_FAMILY (defined(__AVR_ATmega168__) || defined(__AVR_ATmega328__) || defined(__AVR_ATmega328P__))
 
 /**
  * Include Ports and Functions
@@ -52,11 +50,7 @@
 #elif AVR_ATmega2561_FAMILY
   #include "fastio_1281.h"
 #else
-  #error "Pins for this chip not defined in Arduino.h! If you have a working pins definition, please contribute!"
-#endif
-
-#ifndef _BV
-  #define _BV(bit) (1UL << (bit))
+  #error "No FastIO definition for the selected AVR Board."
 #endif
 
 /**
@@ -67,56 +61,59 @@
  * Why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
  */
 
-#define _READ(IO) ((bool)(DIO ## IO ## _RPORT & _BV(DIO ## IO ## _PIN)))
+#define _READ(IO)             TEST(DIO ## IO ## _RPORT, DIO ## IO ## _PIN)
 
-// On some boards pins > 0x100 are used. These are not converted to atomic actions. A critical section is needed.
+#define _WRITE_NC(IO,V) do{ \
+  if (V) SBI(DIO ## IO ## _WPORT, DIO ## IO ## _PIN); \
+  else   CBI(DIO ## IO ## _WPORT, DIO ## IO ## _PIN); \
+}while(0)
 
-#define _WRITE_NC(IO, v)  do { if (v) {DIO ##  IO ## _WPORT |= _BV(DIO ## IO ## _PIN); } else {DIO ##  IO ## _WPORT &= ~_BV(DIO ## IO ## _PIN); }; } while (0)
+#define _WRITE_C(IO,V) do{ \
+  uint8_t port_bits = DIO ## IO ## _WPORT;                  /* Get a mask from the current port bits */ \
+  if (V) port_bits = ~port_bits;                            /* For setting bits, invert the mask */ \
+  DIO ## IO ## _RPORT = port_bits & _BV(DIO ## IO ## _PIN); /* Atomically toggle the output port bits */ \
+}while(0)
 
-#define _WRITE_C(IO, v)   do { if (v) { \
-                                         CRITICAL_SECTION_START; \
-                                         {DIO ##  IO ## _WPORT |= _BV(DIO ## IO ## _PIN); } \
-                                         CRITICAL_SECTION_END; \
-                                       } \
-                                       else { \
-                                         CRITICAL_SECTION_START; \
-                                         {DIO ##  IO ## _WPORT &= ~_BV(DIO ## IO ## _PIN); } \
-                                         CRITICAL_SECTION_END; \
-                                       } \
-                                     } \
-                                     while (0)
+#define _WRITE(IO,V)          do{ if (&(DIO ## IO ## _RPORT) < (uint8_t*)0x100) _WRITE_NC(IO,V); else _WRITE_C(IO,V); }while(0)
 
-#define _WRITE(IO, v) do { if (&(DIO ## IO ## _RPORT) >= (uint8_t *)0x100) {_WRITE_C(IO, v); } else {_WRITE_NC(IO, v); }; } while (0)
+#define _TOGGLE(IO)           (DIO ## IO ## _RPORT = _BV(DIO ## IO ## _PIN))
 
-#define _TOGGLE(IO) do {DIO ## IO ## _RPORT ^= _BV(DIO ## IO ## _PIN); } while (0)
+#define _SET_INPUT(IO)        CBI(DIO ## IO ## _DDR, DIO ## IO ## _PIN)
+#define _SET_OUTPUT(IO)       SBI(DIO ## IO ## _DDR, DIO ## IO ## _PIN)
 
-#define _SET_INPUT(IO) do {DIO ## IO ## _DDR &= ~_BV(DIO ## IO ## _PIN); } while (0)
-#define _SET_OUTPUT(IO) do {DIO ## IO ## _DDR |= _BV(DIO ## IO ## _PIN); } while (0)
+#define _IS_INPUT(IO)         !TEST(DIO ## IO ## _DDR, DIO ## IO ## _PIN)
+#define _IS_OUTPUT(IO)        TEST(DIO ## IO ## _DDR, DIO ## IO ## _PIN)
 
-#define _GET_INPUT(IO) ((DIO ## IO ## _DDR & _BV(DIO ## IO ## _PIN)) == 0)
-#define _GET_OUTPUT(IO) ((DIO ## IO ## _DDR & _BV(DIO ## IO ## _PIN)) != 0)
-#define _GET_TIMER(IO) (DIO ## IO ## _PWM)
+// digitalRead/Write wrappers
+#ifdef FASTIO_EXT_START
+  void extDigitalWrite(const int8_t pin, const uint8_t state);
+  uint8_t extDigitalRead(const int8_t pin);
+#else
+  #define extDigitalWrite(IO,V) digitalWrite(IO,V)
+  #define extDigitalRead(IO)    digitalRead(IO)
+#endif
 
-#define READ(IO) _READ(IO)
-#define WRITE(IO,V) _WRITE(IO,V)
-#define TOGGLE(IO) _TOGGLE(IO)
+#define READ(IO)              _READ(IO)
+#define WRITE(IO,V)           _WRITE(IO,V)
+#define TOGGLE(IO)            _TOGGLE(IO)
 
-#define SET_INPUT(IO) _SET_INPUT(IO)
-#define SET_INPUT_PULLUP(IO) do{ _SET_INPUT(IO); _WRITE(IO, HIGH); }while(0)
-#define SET_OUTPUT(IO) _SET_OUTPUT(IO)
+#define SET_INPUT(IO)         _SET_INPUT(IO)
+#define SET_INPUT_PULLUP(IO)  do{ _SET_INPUT(IO); _WRITE(IO, HIGH); }while(0)
+#define SET_OUTPUT(IO)        _SET_OUTPUT(IO)
 
-#define GET_INPUT(IO) _GET_INPUT(IO)
-#define GET_OUTPUT(IO) _GET_OUTPUT(IO)
-#define GET_TIMER(IO) _GET_TIMER(IO)
+#define SET_PWM(IO)           SET_OUTPUT(IO)
 
-#define OUT_WRITE(IO, v) do{ SET_OUTPUT(IO); WRITE(IO, v); }while(0)
+#define IS_INPUT(IO)          _IS_INPUT(IO)
+#define IS_OUTPUT(IO)         _IS_OUTPUT(IO)
+
+#define OUT_WRITE(IO,V)       do{ SET_OUTPUT(IO); WRITE(IO,V); }while(0)
 
 /**
  * Timer and Interrupt Control
  */
 
 // Waveform Generation Modes
-typedef enum {
+enum WaveGenMode : char {
   WGM_NORMAL,          //  0
   WGM_PWM_PC_8,        //  1
   WGM_PWM_PC_9,        //  2
@@ -133,18 +130,30 @@ typedef enum {
   WGM_reserved,        // 13
   WGM_FAST_PWM_ICRn,   // 14  COM OCnA
   WGM_FAST_PWM_OCRnA   // 15  COM OCnA
-} WaveGenMode;
+};
+
+// Wavefore Generation Modes (Timer 2 only)
+enum WaveGenMode2 : char {
+  WGM2_NORMAL,          // 0
+  WGM2_PWM_PC,          // 1
+  WGM2_CTC_OCR2A,       // 2
+  WGM2_FAST_PWM,        // 3
+  WGM2_reserved_1,      // 4
+  WGM2_PWM_PC_OCR2A,    // 5
+  WGM2_reserved_2,      // 6
+  WGM2_FAST_PWM_OCR2A,  // 7
+};
 
 // Compare Modes
-typedef enum {
+enum CompareMode : char {
   COM_NORMAL,          //  0
   COM_TOGGLE,          //  1  Non-PWM: OCnx ... Both PWM (WGM 9,11,14,15): OCnA only ... else NORMAL
   COM_CLEAR_SET,       //  2  Non-PWM: OCnx ... Fast PWM: OCnx/Bottom ... PF-FC: OCnx Up/Down
   COM_SET_CLEAR        //  3  Non-PWM: OCnx ... Fast PWM: OCnx/Bottom ... PF-FC: OCnx Up/Down
-} CompareMode;
+};
 
 // Clock Sources
-typedef enum {
+enum ClockSource : char {
   CS_NONE,             //  0
   CS_PRESCALER_1,      //  1
   CS_PRESCALER_8,      //  2
@@ -153,10 +162,10 @@ typedef enum {
   CS_PRESCALER_1024,   //  5
   CS_EXT_FALLING,      //  6
   CS_EXT_RISING        //  7
-} ClockSource;
+};
 
 // Clock Sources (Timer 2 only)
-typedef enum {
+enum ClockSource2 : char {
   CS2_NONE,            //  0
   CS2_PRESCALER_1,     //  1
   CS2_PRESCALER_8,     //  2
@@ -165,7 +174,7 @@ typedef enum {
   CS2_PRESCALER_128,   //  5
   CS2_PRESCALER_256,   //  6
   CS2_PRESCALER_1024   //  7
-} ClockSource2;
+};
 
 // Get interrupt bits in an orderly way
 // Ex: cs = GET_CS(0); coma1 = GET_COM(A,1);
@@ -189,6 +198,11 @@ typedef enum {
     TCCR##T##B = (TCCR##T##B & ~(0x3 << WGM##T##2)) | (((int(V) >> 2) & 0x3) << WGM##T##2); \
   }while(0)
 #define SET_WGM(T,V) _SET_WGM(T,WGM_##V)
+// Runtime (see set_pwm_frequency):
+#define _SET_WGMnQ(TCCRnQ, V) do{ \
+    *(TCCRnQ)[0] = (*(TCCRnQ)[0] & ~(0x3 << 0)) | (( int(V)       & 0x3) << 0); \
+    *(TCCRnQ)[1] = (*(TCCRnQ)[1] & ~(0x3 << 3)) | (((int(V) >> 2) & 0x3) << 3); \
+  }while(0)
 
 // Set Clock Select bits
 // Ex: SET_CS3(PRESCALER_64);
@@ -214,6 +228,10 @@ typedef enum {
 #define SET_CS4(V) _SET_CS4(CS_##V)
 #define SET_CS5(V) _SET_CS5(CS_##V)
 #define SET_CS(T,V) SET_CS##T(V)
+// Runtime (see set_pwm_frequency)
+#define _SET_CSn(TCCRnQ, V) do{ \
+    (*(TCCRnQ)[1] = (*(TCCRnQ[1]) & ~(0x7 << 0)) | ((int(V) & 0x7) << 0)); \
+  }while(0)
 
 // Set Compare Mode bits
 // Ex: SET_COMS(4,CLEAR_SET,CLEAR_SET,CLEAR_SET);
@@ -223,6 +241,22 @@ typedef enum {
 #define SET_COMB(T,V) SET_COM(T,B,V)
 #define SET_COMC(T,V) SET_COM(T,C,V)
 #define SET_COMS(T,V1,V2,V3) do{ SET_COMA(T,V1); SET_COMB(T,V2); SET_COMC(T,V3); }while(0)
+// Runtime (see set_pwm_duty)
+#define _SET_COMnQ(TCCRnQ, Q, V) do{ \
+    (*(TCCRnQ)[0] = (*(TCCRnQ)[0] & ~(0x3 << (6-2*(Q)))) | (int(V) << (6-2*(Q)))); \
+  }while(0)
+
+// Set OCRnQ register
+// Runtime (see set_pwm_duty):
+#define _SET_OCRnQ(OCRnQ, Q, V) do{ \
+    (*(OCRnQ)[(Q)] = (0x0000) | (int(V) & 0xFFFF)); \
+  }while(0)
+
+// Set ICRn register (one per timer)
+// Runtime (see set_pwm_frequency)
+#define _SET_ICRn(ICRn, V) do{ \
+    (*(ICRn) = (0x0000) | (int(V) & 0xFFFF)); \
+  }while(0)
 
 // Set Noise Canceler bit
 // Ex: SET_ICNC(2,1)
@@ -239,88 +273,81 @@ typedef enum {
 #define SET_FOCB(T,V) SET_FOC(T,B,V)
 #define SET_FOCC(T,V) SET_FOC(T,C,V)
 
-
 /**
  * PWM availability macros
  */
 
-//find out which harware PWMs are already in use
+// Determine which harware PWMs are already in use
 #if PIN_EXISTS(CONTROLLER_FAN)
-  #define PWM_CHK_FAN_B(p) (p == CONTROLLER_FAN_PIN || p == E0_AUTO_FAN_PIN || p ==  E1_AUTO_FAN_PIN || p ==  E2_AUTO_FAN_PIN || p ==  E3_AUTO_FAN_PIN || p ==  E4_AUTO_FAN_PIN)
+  #define PWM_CHK_FAN_B(P) (P == CONTROLLER_FAN_PIN || P == E0_AUTO_FAN_PIN || P == E1_AUTO_FAN_PIN || P == E2_AUTO_FAN_PIN || P == E3_AUTO_FAN_PIN || P == E4_AUTO_FAN_PIN || P == E5_AUTO_FAN_PIN || P == CHAMBER_AUTO_FAN_PIN)
 #else
-  #define PWM_CHK_FAN_B(p) (p == E0_AUTO_FAN_PIN || p ==  E1_AUTO_FAN_PIN || p ==  E2_AUTO_FAN_PIN || p ==  E3_AUTO_FAN_PIN || p ==  E4_AUTO_FAN_PIN)
+  #define PWM_CHK_FAN_B(P) (P == E0_AUTO_FAN_PIN || P == E1_AUTO_FAN_PIN || P == E2_AUTO_FAN_PIN || P == E3_AUTO_FAN_PIN || P == E4_AUTO_FAN_PIN || P == E5_AUTO_FAN_PIN || P == CHAMBER_AUTO_FAN_PIN)
 #endif
 
-#if PIN_EXISTS(FAN) || PIN_EXISTS(FAN1) || PIN_EXISTS(FAN2)
+#if ANY_PIN(FAN, FAN1, FAN2)
   #if PIN_EXISTS(FAN2)
-    #define PWM_CHK_FAN_A(p) (p == FAN_PIN || p == FAN1_PIN || p == FAN2_PIN)
+    #define PWM_CHK_FAN_A(P) (P == FAN_PIN || P == FAN1_PIN || P == FAN2_PIN)
   #elif PIN_EXISTS(FAN1)
-    #define PWM_CHK_FAN_A(p) (p == FAN_PIN || p == FAN1_PIN)
+    #define PWM_CHK_FAN_A(P) (P == FAN_PIN || P == FAN1_PIN)
   #else
-    #define PWM_CHK_FAN_A(p) p == FAN_PIN
+    #define PWM_CHK_FAN_A(P) (P == FAN_PIN)
   #endif
 #else
-  #define PWM_CHK_FAN_A(p) false
+  #define PWM_CHK_FAN_A(P) false
 #endif
 
 #if HAS_MOTOR_CURRENT_PWM
   #if PIN_EXISTS(MOTOR_CURRENT_PWM_XY)
-    #define PWM_CHK_MOTOR_CURRENT(p) (p == MOTOR_CURRENT_PWM_E || p == MOTOR_CURRENT_PWM_Z || p == MOTOR_CURRENT_PWM_XY)
+    #define PWM_CHK_MOTOR_CURRENT(P) (P == MOTOR_CURRENT_PWM_E || P == MOTOR_CURRENT_PWM_Z || P == MOTOR_CURRENT_PWM_XY)
   #elif PIN_EXISTS(MOTOR_CURRENT_PWM_Z)
-    #define PWM_CHK_MOTOR_CURRENT(p) (p == MOTOR_CURRENT_PWM_E || p == MOTOR_CURRENT_PWM_Z)
+    #define PWM_CHK_MOTOR_CURRENT(P) (P == MOTOR_CURRENT_PWM_E || P == MOTOR_CURRENT_PWM_Z)
   #else
-    #define PWM_CHK_MOTOR_CURRENT(p) (p == MOTOR_CURRENT_PWM_E)
+    #define PWM_CHK_MOTOR_CURRENT(P) (P == MOTOR_CURRENT_PWM_E)
   #endif
 #else
-  #define PWM_CHK_MOTOR_CURRENT(p) false
+  #define PWM_CHK_MOTOR_CURRENT(P) false
 #endif
 
 #ifdef NUM_SERVOS
   #if AVR_ATmega2560_FAMILY
-    #define PWM_CHK_SERVO(p) ( p == 5 || NUM_SERVOS > 12 && p == 6 || NUM_SERVOS > 24 && p == 46)  //PWMS 3A, 4A & 5A
+    #define PWM_CHK_SERVO(P) (P == 5 || (NUM_SERVOS > 12 && P == 6) || (NUM_SERVOS > 24 && P == 46))  // PWMS 3A, 4A & 5A
   #elif AVR_ATmega2561_FAMILY
-    #define PWM_CHK_SERVO(p)   p ==  5  //PWM3A
+    #define PWM_CHK_SERVO(P)   (P == 5)  // PWM3A
   #elif AVR_ATmega1284_FAMILY
-    #define PWM_CHK_SERVO(p)   false
+    #define PWM_CHK_SERVO(P)   false
   #elif AVR_AT90USB1286_FAMILY
-    #define PWM_CHK_SERVO(p)   p ==  16 //PWM3A
+    #define PWM_CHK_SERVO(P)   (P == 16) // PWM3A
   #elif AVR_ATmega328_FAMILY
-    #define PWM_CHK_SERVO(p)   false
+    #define PWM_CHK_SERVO(P)   false
   #endif
 #else
-  #define PWM_CHK_SERVO(p) false
+  #define PWM_CHK_SERVO(P) false
 #endif
 
 #if ENABLED(BARICUDA)
   #if HAS_HEATER_1 && HAS_HEATER_2
-    #define PWM_CHK_HEATER(p) (p == HEATER_1_PIN || p == HEATER_2_PIN)
+    #define PWM_CHK_HEATER(P) (P == HEATER_1_PIN || P == HEATER_2_PIN)
   #elif HAS_HEATER_1
-    #define PWM_CHK_HEATER(p) (p == HEATER_1_PIN)
+    #define PWM_CHK_HEATER(P) (P == HEATER_1_PIN)
   #endif
 #else
-    #define PWM_CHK_HEATER(p) false
+    #define PWM_CHK_HEATER(P) false
 #endif
 
-#define PWM_CHK(p) (PWM_CHK_HEATER(p) || PWM_CHK_SERVO(p)  || PWM_CHK_MOTOR_CURRENT(p)\
-                     || PWM_CHK_FAN_A(p) || PWM_CHK_FAN_B(p))
+#define PWM_CHK(P) (PWM_CHK_HEATER(P) || PWM_CHK_SERVO(P) || PWM_CHK_MOTOR_CURRENT(P) || PWM_CHK_FAN_A(P) || PWM_CHK_FAN_B(P))
 
 // define which hardware PWMs are available for the current CPU
 // all timer 1 PWMS deleted from this list because they are never available
 #if AVR_ATmega2560_FAMILY
-  #define PWM_PINS(p)  ((p >= 2 && p <= 10 ) || p ==  13 || p ==  44 || p ==  45 || p ==  46 )
+  #define PWM_PIN(P)  ((P >= 2 && P <= 10) || P == 13 || P == 44 || P == 45 || P == 46)
 #elif AVR_ATmega2561_FAMILY
-  #define PWM_PINS(p)  ((p >= 2 && p <= 6 ) || p ==  9)
+  #define PWM_PIN(P)  ((P >= 2 && P <= 6) || P == 9)
 #elif AVR_ATmega1284_FAMILY
-  #define PWM_PINS(p)  (p == 3 || p ==  4 || p ==  14 || p ==  15)
+  #define PWM_PIN(P)  (P == 3 || P == 4 || P == 14 || P == 15)
 #elif AVR_AT90USB1286_FAMILY
-  #define PWM_PINS(p)  (p == 0 || p ==  1 || p ==  14 || p ==  15 || p ==  16 || p ==  24)
+  #define PWM_PIN(P)  (P == 0 || P == 1 || P == 14 || P == 15 || P == 16 || P == 24)
 #elif AVR_ATmega328_FAMILY
-  #define PWM_PINS(p)  (p == 3 || p ==  5 || p ==  6 || p ==  11)
+  #define PWM_PIN(P)  (P == 3 || P == 5 || P == 6 || P == 11)
 #else
   #error "unknown CPU"
 #endif
-
-// finally - the macro that tells us if a pin is an available hardware PWM
-#define USEABLE_HARDWARE_PWM(p) (PWM_PINS(p) && !PWM_CHK(p))
-
-#endif // _FASTIO_ARDUINO_H

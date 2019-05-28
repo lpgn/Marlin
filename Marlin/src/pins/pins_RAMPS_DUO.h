@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -43,12 +43,10 @@
  */
 
 #if !defined(__SAM3X8E__) && !defined(__AVR_ATmega2560__)
-  #error "Oops!  Make sure you have 'Arduino Due' or 'Arduino Mega' selected from the 'Tools -> Boards' menu."
+  #error "Oops! Select 'Arduino Due' or 'Arduino/Genuino Mega or Mega 2560' in 'Tools > Board.'"
 #endif
 
-#ifndef BOARD_NAME
-  #define BOARD_NAME       "RAMPS Duo"
-#endif
+#define BOARD_NAME "RAMPS Duo"
 
 #define IS_RAMPS_DUO
 #include "pins_RAMPS.h"
@@ -66,18 +64,19 @@
 #define TEMP_BED_PIN       10   // Analog Input
 
 // SPI for Max6675 or Max31855 Thermocouple
-#undef MAX6675_SS
+#undef MAX6675_SS_PIN
 #if DISABLED(SDSUPPORT)
-  #define MAX6675_SS       69 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
+  #define MAX6675_SS_PIN   69   // Do not use pin 53 if there is even the remote possibility of using Display/SD card
 #else
-  #define MAX6675_SS       69 // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
+  #define MAX6675_SS_PIN   69   // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
 #endif
 
 //
 // LCD / Controller
 //
 #if ENABLED(ULTRA_LCD)
-  #if ENABLED(NEWPANEL) && ENABLED(PANEL_ONE)
+
+  #if BOTH(NEWPANEL, PANEL_ONE)
     #undef LCD_PINS_D4
     #define LCD_PINS_D4  68
 
@@ -89,35 +88,43 @@
   #endif
 
   #if ENABLED(NEWPANEL)
+
     #if ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
+
       #undef BTN_EN1
       #define BTN_EN1 67
 
       #undef BTN_ENC
       #define BTN_ENC 66
+
     #elif ENABLED(MINIPANEL)
+
       #undef DOGLCD_CS
       #define DOGLCD_CS    69
 
       #undef LCD_BACKLIGHT_PIN
-      #define LCD_BACKLIGHT_PIN 68 // backlight LED on A14/D68
+      #define LCD_BACKLIGHT_PIN 68   // backlight LED on A14/D68
 
       #undef KILL_PIN
       #define KILL_PIN     67
 
       #undef BTN_EN2
       #define BTN_EN2      66
+
     #else
+
       #if ENABLED(REPRAPWORLD_KEYPAD)
         #undef BTN_EN1
-        #define BTN_EN1    67 // encoder
+        #define BTN_EN1    67   // encoder
 
         #undef BTN_ENC
-        #define BTN_ENC    66 // enter button
+        #define BTN_ENC    66   // enter button
       #elif ENABLED(PANEL_ONE)
         #undef BTN_EN2
-        #define BTN_EN2    66 // AUX2 PIN 4
+        #define BTN_EN2    66   // AUX2 PIN 4
       #endif
     #endif
+
   #endif // NEWPANEL
+
 #endif // ULTRA_LCD

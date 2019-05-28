@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,18 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
- * blinkm.h - Library for controlling a BlinkM over i2c
- * Created by Tim Koster, August 21 2013.
+ * blinkm.h - Control a BlinkM over i2c
  */
 
-#ifndef __BLINKM_H__
-#define __BLINKM_H__
+struct LEDColor;
+typedef LEDColor LEDColor;
 
-#include "Arduino.h"
-#include <Wire.h>
-
-void blinkm_set_led_color(const uint8_t r, const uint8_t g, const uint8_t b);
-
-#endif // __BLINKM_H__
+void blinkm_set_led_color(const LEDColor &color);

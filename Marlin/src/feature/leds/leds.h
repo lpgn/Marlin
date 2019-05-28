@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,35 +19,188 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
- * Marlin general RGB LED support
+ * leds.h - Marlin general RGB LED support
  */
 
-#ifndef __LEDS_H__
-#define __LEDS_H__
+#include "../../inc/MarlinConfigPre.h"
 
-#if ENABLED(NEOPIXEL_RGBW_LED)
-  #include <Adafruit_NeoPixel.h>
+#include <string.h>
+
+#if ENABLED(NEOPIXEL_LED)
   #include "neopixel.h"
 #endif
 
-#if ENABLED(BLINKM)
-  #include "blinkm.h"
-#endif
+#define HAS_WHITE_LED EITHER(RGBW_LED, NEOPIXEL_LED)
 
-#if ENABLED(PCA9632)
-  #include "pca9632.h"
-#endif
-
-void set_led_color(
-  const uint8_t r, const uint8_t g, const uint8_t b
-  #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
-    , const uint8_t w = 0
-    #if ENABLED(NEOPIXEL_RGBW_LED)
-      , bool isSequence = false
+/**
+ * LEDcolor type for use with leds.set_color
+ */
+typedef struct LEDColor {
+  uint8_t r, g, b
+    #if HAS_WHITE_LED
+      , w
+      #if ENABLED(NEOPIXEL_LED)
+        , i
+      #endif
     #endif
-  #endif
-);
+  ;
 
-#endif // __LEDS_H__
+  LEDColor() : r(255), g(255), b(255)
+    #if HAS_WHITE_LED
+      , w(255)
+      #if ENABLED(NEOPIXEL_LED)
+        , i(NEOPIXEL_BRIGHTNESS)
+      #endif
+    #endif
+  {}
+
+  LEDColor(uint8_t r, uint8_t g, uint8_t b
+    #if HAS_WHITE_LED
+      , uint8_t w=0
+      #if ENABLED(NEOPIXEL_LED)
+        , uint8_t i=NEOPIXEL_BRIGHTNESS
+      #endif
+    #endif
+    ) : r(r), g(g), b(b)
+    #if HAS_WHITE_LED
+      , w(w)
+      #if ENABLED(NEOPIXEL_LED)
+        , i(i)
+      #endif
+    #endif
+  {}
+
+  LEDColor(const uint8_t (&rgbw)[4]) : r(rgbw[0]), g(rgbw[1]), b(rgbw[2])
+    #if HAS_WHITE_LED
+      , w(rgbw[3])
+      #if ENABLED(NEOPIXEL_LED)
+        , i(NEOPIXEL_BRIGHTNESS)
+      #endif
+    #endif
+  {}
+
+  LEDColor& operator=(const uint8_t (&rgbw)[4]) {
+    r = rgbw[0]; g = rgbw[1]; b = rgbw[2];
+    #if HAS_WHITE_LED
+      w = rgbw[3];
+    #endif
+    return *this;
+  }
+
+  LEDColor& operator=(const LEDColor &right) {
+    if (this != &right) memcpy(this, &right, sizeof(LEDColor));
+    return *this;
+  }
+
+  bool operator==(const LEDColor &right) {
+    if (this == &right) return true;
+    return 0 == memcmp(this, &right, sizeof(LEDColor));
+  }
+
+  bool operator!=(const LEDColor &right) { return !operator==(right); }
+
+  bool is_off() const {
+    return 3 > r + g + b
+      #if HAS_WHITE_LED
+        + w
+      #endif
+    ;
+  }
+} LEDColor;
+
+/**
+ * Color helpers and presets
+ */
+#if HAS_WHITE_LED
+  #if ENABLED(NEOPIXEL_LED)
+    #define MakeLEDColor(R,G,B,W,I) LEDColor(R, G, B, W, I)
+  #else
+    #define MakeLEDColor(R,G,B,W,I) LEDColor(R, G, B, W)
+  #endif
+#else
+  #define MakeLEDColor(R,G,B,W,I)   LEDColor(R, G, B)
+#endif
+
+#define LEDColorOff()             LEDColor(  0,   0,   0)
+#define LEDColorRed()             LEDColor(255,   0,   0)
+#if ENABLED(LED_COLORS_REDUCE_GREEN)
+  #define LEDColorOrange()        LEDColor(255,  25,   0)
+  #define LEDColorYellow()        LEDColor(255,  75,   0)
+#else
+  #define LEDColorOrange()        LEDColor(255,  80,   0)
+  #define LEDColorYellow()        LEDColor(255, 255,   0)
+#endif
+#define LEDColorGreen()           LEDColor(  0, 255,   0)
+#define LEDColorBlue()            LEDColor(  0,   0, 255)
+#define LEDColorIndigo()          LEDColor(  0, 255, 255)
+#define LEDColorViolet()          LEDColor(255,   0, 255)
+#if HAS_WHITE_LED
+  #define LEDColorWhite()         LEDColor(  0,   0,   0, 255)
+#else
+  #define LEDColorWhite()         LEDColor(255, 255, 255)
+#endif
+
+class LEDLights {
+public:
+  LEDLights() {} // ctor
+
+  static void setup(); // init()
+
+  static void set_color(const LEDColor &color
+    #if ENABLED(NEOPIXEL_LED)
+      , bool isSequence=false
+    #endif
+  );
+
+  inline void set_color(uint8_t r, uint8_t g, uint8_t b
+    #if HAS_WHITE_LED
+      , uint8_t w=0
+      #if ENABLED(NEOPIXEL_LED)
+        , uint8_t i=NEOPIXEL_BRIGHTNESS
+      #endif
+    #endif
+    #if ENABLED(NEOPIXEL_LED)
+      , bool isSequence=false
+    #endif
+  ) {
+    set_color(MakeLEDColor(r, g, b, w, i)
+      #if ENABLED(NEOPIXEL_LED)
+        , isSequence
+      #endif
+    );
+  }
+
+  static inline void set_off()   { set_color(LEDColorOff()); }
+  static inline void set_green() { set_color(LEDColorGreen()); }
+  static inline void set_white() { set_color(LEDColorWhite()); }
+
+  #if ENABLED(LED_COLOR_PRESETS)
+    static const LEDColor defaultLEDColor;
+    static inline void set_default()  { set_color(defaultLEDColor); }
+    static inline void set_red()      { set_color(LEDColorRed()); }
+    static inline void set_orange()   { set_color(LEDColorOrange()); }
+    static inline void set_yellow()   { set_color(LEDColorYellow()); }
+    static inline void set_blue()     { set_color(LEDColorBlue()); }
+    static inline void set_indigo()   { set_color(LEDColorIndigo()); }
+    static inline void set_violet()   { set_color(LEDColorViolet()); }
+  #endif
+
+  #if ENABLED(PRINTER_EVENT_LEDS)
+    static inline LEDColor get_color() { return lights_on ? color : LEDColorOff(); }
+  #endif
+
+  #if EITHER(LED_CONTROL_MENU, PRINTER_EVENT_LEDS)
+    static LEDColor color; // last non-off color
+    static bool lights_on; // the last set color was "on"
+  #endif
+
+  #if ENABLED(LED_CONTROL_MENU)
+    static void toggle();  // swap "off" with color
+    static inline void update() { set_color(color); }
+  #endif
+};
+
+extern LEDLights leds;

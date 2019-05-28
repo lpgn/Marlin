@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,11 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
+
+#include "../core/macros.h" // for ENABLED
 
 /**
- * This file is the standard Marlin version identifier file, all fields can be
- * overriden by the ones defined on _Version.h by using the Configuration.h
- * directive USE_AUTOMATIC_VERSIONING.
+ * This file is the standard Marlin version identifier file.
+ * Use -DUSE_AUTOMATIC_VERSIONING=1 and a custom _Version.h
+ * to override these values.
  */
 
 #if ENABLED(USE_AUTOMATIC_VERSIONING)
@@ -48,7 +51,7 @@
    * here we define this default string as the date where the latest release
    * version was tagged.
    */
-  #define STRING_DISTRIBUTION_DATE "2017-07-27 12:00"
+  #define STRING_DISTRIBUTION_DATE "2018-01-20"
 
   /**
    * Required minimum Configuration.h and Configuration_adv.h file versions.

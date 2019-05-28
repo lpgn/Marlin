@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Ukrainian
@@ -27,11 +28,9 @@
  * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
-#ifndef LANGUAGE_UK_H
-#define LANGUAGE_UK_H
 
-#define MAPPER_D0D1                // For Cyrillic
 #define DISPLAY_CHARSET_ISO10646_5
+#define CHARSIZE 2
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" готовий.")
 #define MSG_SD_INSERTED                     _UxGT("Картка вставлена")
@@ -51,12 +50,12 @@
 #define MSG_SET_HOME_OFFSETS                _UxGT("Зберегти паркув.")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Зміщення застос.")
 #define MSG_SET_ORIGIN                      _UxGT("Встанов. початок")
-#define MSG_PREHEAT_1                       _UxGT("Нагрів PLA")
+#define MSG_PREHEAT_1                       _UxGT("Нагрів " PREHEAT_1_LABEL)
 #define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
 #define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" Все")
 #define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Стіл")
 #define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" нал.")
-#define MSG_PREHEAT_2                       _UxGT("Нагрів ABS")
+#define MSG_PREHEAT_2                       _UxGT("Нагрів " PREHEAT_2_LABEL)
 #define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Все")
 #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Стіл")
@@ -87,8 +86,8 @@
 #define MSG_MAX                             _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Макс")
 #define MSG_FACTOR                          _UxGT(" ") LCD_STR_THERMOMETER _UxGT(" Факт")
 #define MSG_AUTOTEMP                        _UxGT("Автотемпер.")
-#define MSG_ON                              _UxGT("Увімк.")
-#define MSG_OFF                             _UxGT("Вимк. ")
+#define MSG_LCD_ON                          _UxGT("Увімк.")
+#define MSG_LCD_OFF                         _UxGT("Вимк.")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -96,9 +95,15 @@
 #define MSG_SELECT                          _UxGT("Вибрати")
 #define MSG_ACC                             _UxGT("Приск.")
 #define MSG_JERK                            _UxGT("Ривок")
-#define MSG_VX_JERK                         _UxGT("Vx-ривок")
-#define MSG_VY_JERK                         _UxGT("Vy-ривок")
-#define MSG_VZ_JERK                         _UxGT("Vz-ривок")
+#if IS_KINEMATIC
+  #define MSG_VA_JERK                       _UxGT("Va-ривок")
+  #define MSG_VB_JERK                       _UxGT("Vb-ривок")
+  #define MSG_VC_JERK                       _UxGT("Vc-ривок")
+#else
+  #define MSG_VA_JERK                       _UxGT("Vx-ривок")
+  #define MSG_VB_JERK                       _UxGT("Vy-ривок")
+  #define MSG_VC_JERK                       _UxGT("Vz-ривок")
+#endif
 #define MSG_VE_JERK                         _UxGT("Ve-ривок")
 #define MSG_VMAX                            _UxGT("Vмакс")
 #define MSG_VMIN                            _UxGT("Vмін")
@@ -107,15 +112,22 @@
 #define MSG_A_RETRACT                       _UxGT("A-втягув.")
 #define MSG_A_TRAVEL                        _UxGT("A-руху")
 #define MSG_STEPS_PER_MM                    _UxGT("Кроків/мм")
-#define MSG_XSTEPS                          _UxGT("Xкроків/мм")
-#define MSG_YSTEPS                          _UxGT("Yкроків/мм")
-#define MSG_ZSTEPS                          _UxGT("Zкроків/мм")
+#if IS_KINEMATIC
+  #define MSG_ASTEPS                        _UxGT("Aкроків/мм")
+  #define MSG_BSTEPS                        _UxGT("Bкроків/мм")
+  #define MSG_CSTEPS                        _UxGT("Cкроків/мм")
+#else
+  #define MSG_ASTEPS                        _UxGT("Xкроків/мм")
+  #define MSG_BSTEPS                        _UxGT("Yкроків/мм")
+  #define MSG_CSTEPS                        _UxGT("Zкроків/мм")
+#endif
 #define MSG_ESTEPS                          _UxGT("Eкроків/мм")
 #define MSG_E1STEPS                         _UxGT("E1кроків/мм")
 #define MSG_E2STEPS                         _UxGT("E2кроків/мм")
 #define MSG_E3STEPS                         _UxGT("E3кроків/мм")
 #define MSG_E4STEPS                         _UxGT("E4кроків/мм")
 #define MSG_E5STEPS                         _UxGT("E5кроків/мм")
+#define MSG_E6STEPS                         _UxGT("E6кроків/мм")
 #define MSG_TEMPERATURE                     _UxGT("Температура")
 #define MSG_MOTION                          _UxGT("Рух")
 #define MSG_FILAMENT                        _UxGT("Волокно")
@@ -136,14 +148,13 @@
 #define MSG_NO_CARD                         _UxGT("Відсутня SD карт.")
 #define MSG_DWELL                           _UxGT("Сплячка...")
 #define MSG_USERWAIT                        _UxGT("Очікування дій...")
-#define MSG_RESUMING                        _UxGT("Відновлення друку")
 #define MSG_PRINT_ABORTED                   _UxGT("Друк скасовано")
 #define MSG_NO_MOVE                         _UxGT("Немає руху.")
 #define MSG_KILLED                          _UxGT("ПЕРЕРВАНО. ")
 #define MSG_STOPPED                         _UxGT("ЗУПИНЕНО. ")
 #define MSG_FILAMENTCHANGE                  _UxGT("Зміна волокна")
 #define MSG_INIT_SDCARD                     _UxGT("Старт SD картки")
-#define MSG_CNG_SDCARD                      _UxGT("Заміна SD карти")
+#define MSG_CHANGE_SDCARD                   _UxGT("Заміна SD карти")
 #define MSG_ZPROBE_OUT                      _UxGT("Z дет. не в межах")
 #define MSG_BLTOUCH_SELFTEST                _UxGT("BLTouch Само-Тест")
 #define MSG_BLTOUCH_RESET                   _UxGT("Скинути BLTouch")
@@ -156,16 +167,14 @@
 #define MSG_ENDSTOP_ABORT                   _UxGT("невдача кінцевика")
 #define MSG_HEATING_FAILED_LCD              _UxGT("Невдалий нагрів")
 #define MSG_THERMAL_RUNAWAY                 _UxGT("ЗБІЙ ТЕМПЕРАТУРИ")
-#define MSG_ERR_Z_HOMING                    _UxGT("G28 Z Відмовлено")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("ПРИНТЕР ЗУПИНЕНО")
 #define MSG_PLEASE_RESET                    _UxGT("Перезавантажте")
 #define MSG_SHORT_DAY                       _UxGT("д") // One character only
 #define MSG_SHORT_HOUR                      _UxGT("г") // One character only
 #define MSG_SHORT_MINUTE                    _UxGT("х") // One character only
 #define MSG_HEATING                         _UxGT("Нагрівання...")
-#define MSG_HEATING_COMPLETE                _UxGT("Нагріто.")
-#define MSG_BED_HEATING                     _UxGT("Нагрівання столу.")
-#define MSG_BED_DONE                        _UxGT("Стіл нагрітий.")
+#define MSG_BED_HEATING                     _UxGT("Нагрівання столу...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Калібр. Delta")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Калібрування X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Калібрування Y")
@@ -204,9 +213,6 @@
 #define MSG_DAC_PERCENT                     _UxGT("% мотору")
 #define MSG_DAC_EEPROM_WRITE                _UxGT("Запис ЦАП на ПЗП")
 
-#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
-#define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
-#define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Екструдувати")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Відновити друк")
 
 #if LCD_HEIGHT >= 4
@@ -221,9 +227,6 @@
   #define MSG_FILAMENT_CHANGE_INSERT_3        _UxGT("продовження...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Зачекайте на")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("ввід волокна")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Зачекайте на")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_2       _UxGT("екструзію")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_3       _UxGT("волокна")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Зачекайте на")
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("відновлення")
   #define MSG_FILAMENT_CHANGE_RESUME_3        _UxGT("друку")
@@ -233,8 +236,5 @@
   #define MSG_FILAMENT_CHANGE_UNLOAD_1        _UxGT("Вивід...")
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Вставте і нат.")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Ввід...")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Екструзія...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Відновлення...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_UK_H

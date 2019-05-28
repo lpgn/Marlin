@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -25,10 +25,10 @@
  */
 
 #if !defined(__AVR_ATmega1280__) && !defined(__AVR_ATmega2560__)
-  #error "Oops!  Make sure you have 'Arduino Mega' selected from the 'Tools -> Boards' menu."
+  #error "Oops! Select 'Arduino/Genuino Mega or Mega 2560' in 'Tools > Board.'"
 #endif
 
-#define BOARD_NAME         "MEGA/RAMPS <1.2"
+#define BOARD_NAME "RAMPS <1.2"
 
 // Uncomment the following line for RAMPS v1.0
 //#define RAMPS_V_1_0
@@ -77,9 +77,9 @@
 
 // SPI for Max6675 or Max31855 Thermocouple
 #if DISABLED(SDSUPPORT)
-  #define MAX6675_SS       66 // Do not use pin 53 if there is even the remote possibility of using Display/SD card
+  #define MAX6675_SS_PIN   66   // Do not use pin 53 if there is even the remote possibility of using Display/SD card
 #else
-  #define MAX6675_SS       66 // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
+  #define MAX6675_SS_PIN   66   // Do not use pin 49 as this is tied to the switch inside the SD card socket to detect if there is an SD card present
 #endif
 
 //
@@ -88,11 +88,15 @@
 #if ENABLED(RAMPS_V_1_0)
   #define HEATER_0_PIN     12
   #define HEATER_BED_PIN   -1
-  #define FAN_PIN          11
+  #ifndef FAN_PIN
+    #define FAN_PIN        11
+  #endif
 #else // RAMPS_V_1_1 or RAMPS_V_1_2
   #define HEATER_0_PIN     10
   #define HEATER_BED_PIN    8
-  #define FAN_PIN           9
+  #ifndef FAN_PIN
+    #define FAN_PIN         9
+  #endif
 #endif
 
 //
@@ -101,11 +105,11 @@
 #define SDPOWER            48
 #define SDSS               53
 #define LED_PIN            13
-#define CASE_LIGHT_PIN     45     // MUST BE HARDWARE PWM
+#define CASE_LIGHT_PIN     45   // MUST BE HARDWARE PWM
 
 //
 // M3/M4/M5 - Spindle/Laser Control
 //
-#define SPINDLE_LASER_ENABLE_PIN 41  // Pin should have a pullup/pulldown!
-#define SPINDLE_LASER_PWM_PIN    45  // MUST BE HARDWARE PWM
+#define SPINDLE_LASER_ENA_PIN    41   // Pin should have a pullup/pulldown!
+#define SPINDLE_LASER_PWM_PIN    45   // MUST BE HARDWARE PWM
 #define SPINDLE_DIR_PIN          43

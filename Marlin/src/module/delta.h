@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -24,10 +24,10 @@
  * delta.h - Delta-specific functions
  */
 
-#ifndef __DELTA_H__
-#define __DELTA_H__
+#pragma once
 
-extern float delta_endstop_adj[ABC],
+extern float delta_height,
+             delta_endstop_adj[ABC],
              delta_radius,
              delta_diagonal_rod,
              delta_segments_per_second,
@@ -42,12 +42,12 @@ extern float delta_tower[ABC][2],
  * Recalculate factors used for delta kinematics whenever
  * settings have been changed (e.g., by M665).
  */
-void recalc_delta_settings(const float radius, const float diagonal_rod, const float tower_angle_trim[ABC]);
+void recalc_delta_settings();
 
 /**
  * Delta Inverse Kinematics
  *
- * Calculate the tower positions for a given logical
+ * Calculate the tower positions for a given machine
  * position, storing the result in the delta[] array.
  *
  * This is an expensive calculation, requiring 3 square
@@ -63,41 +63,25 @@ void recalc_delta_settings(const float radius, const float diagonal_rod, const f
  *   (see above)
  */
 
-#if ENABLED(DELTA_FAST_SQRT) && defined(__AVR__)
-  /**
-   * Fast inverse sqrt from Quake III Arena
-   * See: https://en.wikipedia.org/wiki/Fast_inverse_square_root
-   */
-  float Q_rsqrt(float number);
-  #define _SQRT(n) (1.0f / Q_rsqrt(n))
-#else
-  #define _SQRT(n) SQRT(n)
-#endif
-
 // Macro to obtain the Z position of an individual tower
-#define DELTA_Z(T) raw[Z_AXIS] + _SQRT(     \
-  delta_diagonal_rod_2_tower[T] - HYPOT2(   \
-      delta_tower[T][X_AXIS] - raw[X_AXIS], \
-      delta_tower[T][Y_AXIS] - raw[Y_AXIS]  \
-    )                                       \
+#define DELTA_Z(V,T) V[Z_AXIS] + SQRT(    \
+  delta_diagonal_rod_2_tower[T] - HYPOT2( \
+      delta_tower[T][X_AXIS] - V[X_AXIS], \
+      delta_tower[T][Y_AXIS] - V[Y_AXIS]  \
+    )                                     \
   )
 
-#define DELTA_RAW_IK() do {        \
-  delta[A_AXIS] = DELTA_Z(A_AXIS); \
-  delta[B_AXIS] = DELTA_Z(B_AXIS); \
-  delta[C_AXIS] = DELTA_Z(C_AXIS); \
+#define DELTA_IK(V) do {              \
+  delta[A_AXIS] = DELTA_Z(V, A_AXIS); \
+  delta[B_AXIS] = DELTA_Z(V, B_AXIS); \
+  delta[C_AXIS] = DELTA_Z(V, C_AXIS); \
 }while(0)
 
-#define DELTA_LOGICAL_IK() do {      \
-  const float raw[XYZ] = {           \
-    RAW_X_POSITION(logical[X_AXIS]), \
-    RAW_Y_POSITION(logical[Y_AXIS]), \
-    RAW_Z_POSITION(logical[Z_AXIS])  \
-  };                                 \
-  DELTA_RAW_IK();                    \
-}while(0)
-
-void inverse_kinematics(const float logical[XYZ]);
+void inverse_kinematics(const float (&raw)[XYZ]);
+FORCE_INLINE void inverse_kinematics(const float (&raw)[XYZE]) {
+  const float raw_xyz[XYZ] = { raw[X_AXIS], raw[Y_AXIS], raw[Z_AXIS] };
+  inverse_kinematics(raw_xyz);
+}
 
 /**
  * Calculate the highest Z position where the
@@ -130,12 +114,10 @@ float delta_safe_distance_from_top();
  *
  * The result is stored in the cartes[] array.
  */
-void forward_kinematics_DELTA(float z1, float z2, float z3);
+void forward_kinematics_DELTA(const float &z1, const float &z2, const float &z3);
 
-FORCE_INLINE void forward_kinematics_DELTA(float point[ABC]) {
+FORCE_INLINE void forward_kinematics_DELTA(const float (&point)[ABC]) {
   forward_kinematics_DELTA(point[A_AXIS], point[B_AXIS], point[C_AXIS]);
 }
 
-bool home_delta();
-
-#endif // __DELTA_H__
+void home_delta();

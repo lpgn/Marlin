@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -27,11 +27,23 @@
 #include "../gcode.h"
 #include "../../module/stepper.h"
 
-#if ENABLED(ULTIPANEL)
+#if HAS_LCD_MENU
   #include "../../lcd/ultralcd.h"
 #endif
 
+#if ENABLED(EXTENSIBLE_UI)
+  #include "../../lcd/extensible_ui/ui_api.h"
+#endif
+
 #include "../../sd/cardreader.h"
+
+#if HAS_LEDS_OFF_FLAG
+  #include "../../feature/leds/printer_event_leds.h"
+#endif
+
+#if ENABLED(HOST_PROMPT_SUPPORT)
+  #include "../../feature/host_actions.h"
+#endif
 
 /**
  * M0: Unconditional stop - Wait for user button press on LCD
@@ -51,20 +63,28 @@ void GcodeSuite::M0_M1() {
     hasS = ms > 0;
   }
 
-  #if ENABLED(ULTIPANEL)
+  const bool has_message = !hasP && !hasS && args && *args;
 
-    if (!hasP && !hasS && args && *args)
-      lcd_setstatus(args, true);
+  planner.synchronize();
+
+  #if HAS_LCD_MENU
+
+    if (has_message)
+      ui.set_status(args, true);
     else {
       LCD_MESSAGEPGM(MSG_USERWAIT);
       #if ENABLED(LCD_PROGRESS_BAR) && PROGRESS_MSG_EXPIRE > 0
-        dontExpireStatus();
+        ui.reset_progress_bar_timeout();
       #endif
     }
 
+  #elif ENABLED(EXTENSIBLE_UI)
+
+    ExtUI::onUserConfirmRequired(has_message ? args : MSG_USERWAIT); // SRAM string
+
   #else
 
-    if (!hasP && !hasS && args && *args) {
+    if (has_message) {
       SERIAL_ECHO_START();
       SERIAL_ECHOLN(args);
     }
@@ -74,23 +94,28 @@ void GcodeSuite::M0_M1() {
   KEEPALIVE_STATE(PAUSED_FOR_USER);
   wait_for_user = true;
 
-  stepper.synchronize();
-  refresh_cmd_timeout();
+  #if ENABLED(HOST_PROMPT_SUPPORT)
+    host_prompt_do(PROMPT_USER_CONTINUE, PSTR("M0/1 Break Called"), PSTR("Continue"));
+  #endif
 
   if (ms > 0) {
-    ms += previous_cmd_ms;  // wait until this time for a click
+    ms += millis();  // wait until this time for a click
     while (PENDING(millis(), ms) && wait_for_user) idle();
   }
-  else {
-    #if ENABLED(ULTIPANEL)
-      if (lcd_detected()) {
-        while (wait_for_user) idle();
-        IS_SD_PRINTING ? LCD_MESSAGEPGM(MSG_RESUMING) : LCD_MESSAGEPGM(WELCOME_MSG);
-      }
-    #else
-      while (wait_for_user) idle();
-    #endif
-  }
+  else
+    while (wait_for_user) idle();
+
+  #if ENABLED(EXTENSIBLE_UI)
+    ExtUI::onUserConfirmRequired(nullptr);
+  #endif
+
+  #if HAS_LEDS_OFF_FLAG
+    printerEventLEDs.onResumeAfterWait();
+  #endif
+
+  #if HAS_LCD_MENU
+    ui.reset_status();
+  #endif
 
   wait_for_user = false;
   KEEPALIVE_STATE(IN_HANDLER);

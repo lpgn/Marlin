@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,30 +19,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef MARLIN_CONFIG_H
-#define MARLIN_CONFIG_H
+//
+// Prefix header for all Marlin sources
+//
 
-#include "../core/boards.h"
-#include "../core/macros.h"
-#include "Version.h"
-#include "SPI.h"
-#include "../../Configuration.h"
-#include "Conditionals_LCD.h"
-#include "../../Configuration_adv.h"
-#include "../HAL/HAL.h"
+#include "MarlinConfigPre.h"
+
+#include HAL_PATH(../HAL, HAL.h)
+
 #include "../pins/pins.h"
+
+#include HAL_PATH(../HAL, spi_pins.h)
+
 #if defined(__AVR__) && !defined(USBCON)
   #define HardwareSerial_h // trick to disable the standard HWserial
 #endif
+
 #include "Conditionals_post.h"
 #include "SanityCheck.h"
+
+#include HAL_PATH(../HAL, SanityCheck.h)
 
 // Include all core headers
 #include "../core/enum.h"
 #include "../core/language.h"
-#include "../core/types.h"
 #include "../core/utility.h"
 #include "../core/serial.h"
-
-#endif // MARLIN_CONFIG_H
+#include "../core/minmax.h"

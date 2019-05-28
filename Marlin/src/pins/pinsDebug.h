@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016, 2017 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -20,8 +20,8 @@
  *
  */
 
-#define MAX_NAME_LENGTH  35    // one place to specify the format of all the sources of names
-                               // "-" left justify, "35" minimum width of name, pad with blanks
+#define MAX_NAME_LENGTH  39    // one place to specify the format of all the sources of names
+                               // "-" left justify, "39" minimum width of name, pad with blanks
 
 /**
  *  This routine minimizes RAM usage by creating a FLASH resident array to
@@ -39,14 +39,14 @@
 
 #define _ADD_PIN_2(PIN_NAME, ENTRY_NAME) static const char ENTRY_NAME[] PROGMEM = { PIN_NAME };
 #define _ADD_PIN(PIN_NAME, COUNTER) _ADD_PIN_2(PIN_NAME, entry_NAME_##COUNTER)
-#define REPORT_NAME_DIGITAL(NAME, COUNTER) _ADD_PIN(#NAME, COUNTER)
-#define REPORT_NAME_ANALOG(NAME, COUNTER) _ADD_PIN(#NAME, COUNTER)
+#define REPORT_NAME_DIGITAL(COUNTER, NAME) _ADD_PIN(#NAME, COUNTER)
+#define REPORT_NAME_ANALOG(COUNTER, NAME) _ADD_PIN(#NAME, COUNTER)
 
 #include "pinsDebug_list.h"
-#line 49
+#line 47
 
 // manually add pins that have names that are macros which don't play well with these macros
-#if SERIAL_PORT == 0 && (AVR_ATmega2560_FAMILY || AVR_ATmega1284_FAMILY)
+#if SERIAL_PORT == 0 && (AVR_ATmega2560_FAMILY || AVR_ATmega1284_FAMILY || defined(ARDUINO_ARCH_SAM))
   static const char RXD_NAME[] PROGMEM = { "RXD" };
   static const char TXD_NAME[] PROGMEM = { "TXD" };
 #endif
@@ -62,13 +62,13 @@
 
 #define _ADD_PIN_2(ENTRY_NAME, NAME, IS_DIGITAL) { ENTRY_NAME, NAME, IS_DIGITAL },
 #define _ADD_PIN(NAME, COUNTER, IS_DIGITAL) _ADD_PIN_2(entry_NAME_##COUNTER, NAME, IS_DIGITAL)
-#define REPORT_NAME_DIGITAL(NAME, COUNTER) _ADD_PIN(NAME, COUNTER, true)
-#define REPORT_NAME_ANALOG(NAME, COUNTER) _ADD_PIN(analogInputToDigitalPin(NAME), COUNTER, false)
+#define REPORT_NAME_DIGITAL(COUNTER, NAME) _ADD_PIN(NAME, COUNTER, true)
+#define REPORT_NAME_ANALOG(COUNTER, NAME) _ADD_PIN(analogInputToDigitalPin(NAME), COUNTER, false)
 
 
 typedef struct {
-  const char * const name;
-  uint8_t pin;
+  PGM_P const name;
+  pin_t pin;
   bool is_digital;
 } PinInfo;
 
@@ -85,7 +85,7 @@ const PinInfo pin_array[] PROGMEM = {
 
   // manually add pins ...
   #if SERIAL_PORT == 0
-    #if AVR_ATmega2560_FAMILY
+    #if (AVR_ATmega2560_FAMILY || defined(ARDUINO_ARCH_SAM))
       { RXD_NAME, 0, true },
       { TXD_NAME, 1, true },
     #elif AVR_ATmega1284_FAMILY
@@ -95,32 +95,34 @@ const PinInfo pin_array[] PROGMEM = {
   #endif
 
   #include "pinsDebug_list.h"
-  #line 101
+  #line 99
 
 };
 
 
-#include "../HAL/HAL_pinsDebug.h"  // get the correct support file for this CPU
+#include HAL_PATH(../HAL, pinsDebug.h)  // get the correct support file for this CPU
 
+#ifndef M43_NEVER_TOUCH
+  #define M43_NEVER_TOUCH(Q) false
+#endif
 
 static void print_input_or_output(const bool isout) {
   serialprintPGM(isout ? PSTR("Output = ") : PSTR("Input  = "));
 }
 
-
 // pretty report with PWM info
-inline void report_pin_state_extended(int8_t pin, bool ignore, bool extended = false, const char *start_string = "") {
-  char buffer[30];   // for the sprintf statements
+inline void report_pin_state_extended(pin_t pin, bool ignore, bool extended = false, const char *start_string = "") {
+  char buffer[MAX_NAME_LENGTH + 1];   // for the sprintf statements
   bool found = false, multi_name_pin = false;
 
   for (uint8_t x = 0; x < COUNT(pin_array); x++)  {    // scan entire array and report all instances of this pin
     if (GET_ARRAY_PIN(x) == pin) {
-      GET_PIN_INFO(pin);
       if (found) multi_name_pin = true;
       found = true;
       if (!multi_name_pin) {    // report digitial and analog pin number only on the first time through
-        sprintf_P(buffer, PSTR("%sPIN: %3d "), start_string, pin);     // digital pin number
+        sprintf_P(buffer, PSTR("%sPIN: "), start_string);     // digital pin number
         SERIAL_ECHO(buffer);
+        PRINT_PIN(pin);
         PRINT_PORT(pin);
         if (IS_ANALOG(pin)) {
           sprintf_P(buffer, PSTR(" (A%2d)  "), DIGITAL_PIN_TO_ANALOG_PIN(pin));    // analog pin number
@@ -130,7 +132,7 @@ inline void report_pin_state_extended(int8_t pin, bool ignore, bool extended = f
       }
       else {
         SERIAL_CHAR('.');
-        SERIAL_ECHO_SP(26 + strlen(start_string));  // add padding if not the first instance found
+        SERIAL_ECHO_SP(MULTI_NAME_PAD + strlen(start_string));  // add padding if not the first instance found
       }
       PRINT_ARRAY_NAME(x);
       if (extended) {
@@ -140,19 +142,19 @@ inline void report_pin_state_extended(int8_t pin, bool ignore, bool extended = f
           #if AVR_AT90USB1286_FAMILY //Teensy IDEs don't know about these pins so must use FASTIO
             if (pin == 46 || pin == 47) {
               if (pin == 46) {
-                print_input_or_output(GET_OUTPUT(46));
-                SERIAL_PROTOCOL(READ(46));
+                print_input_or_output(IS_OUTPUT(46));
+                SERIAL_CHAR('0' + READ(46));
               }
               else if (pin == 47) {
-                print_input_or_output(GET_OUTPUT(47));
-                SERIAL_PROTOCOL(READ(47));
+                print_input_or_output(IS_OUTPUT(47));
+                SERIAL_CHAR('0' + READ(47));
               }
             }
             else
           #endif
           {
             if (!GET_ARRAY_IS_DIGITAL(x)) {
-              sprintf_P(buffer, PSTR("Analog in = %5d"), analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
+              sprintf_P(buffer, PSTR("Analog in = %5ld"), (long)analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
               SERIAL_ECHO(buffer);
             }
             else {
@@ -161,14 +163,14 @@ inline void report_pin_state_extended(int8_t pin, bool ignore, bool extended = f
                                                // because this could interfere with inductive/capacitive
                                                // sensors (high impedance voltage divider) and with PT100 amplifier
                 print_input_or_output(false);
-                SERIAL_PROTOCOL(digitalRead_mod(pin));
+                SERIAL_ECHO(digitalRead_mod(pin));
               }
               else if (pwm_status(pin)) {
                 // do nothing
               }
               else {
                 print_input_or_output(true);
-                SERIAL_PROTOCOL(digitalRead_mod(pin));
+                SERIAL_ECHO(digitalRead_mod(pin));
               }
             }
             if (!multi_name_pin && extended) pwm_details(pin);  // report PWM capabilities only on the first pass & only if doing an extended report
@@ -180,8 +182,9 @@ inline void report_pin_state_extended(int8_t pin, bool ignore, bool extended = f
   } // end of for loop
 
   if (!found) {
-    sprintf_P(buffer, PSTR("%sPIN: %3d "), start_string, pin);
+    sprintf_P(buffer, PSTR("%sPIN: "), start_string);
     SERIAL_ECHO(buffer);
+    PRINT_PIN(pin);
     PRINT_PORT(pin);
     if (IS_ANALOG(pin)) {
       sprintf_P(buffer, PSTR(" (A%2d)  "), DIGITAL_PIN_TO_ANALOG_PIN(pin));    // analog pin number
@@ -193,27 +196,27 @@ inline void report_pin_state_extended(int8_t pin, bool ignore, bool extended = f
     if (extended) {
       #if AVR_AT90USB1286_FAMILY  //Teensy IDEs don't know about these pins so must use FASTIO
         if (pin == 46 || pin == 47) {
-          SERIAL_PROTOCOL_SP(12);
+          SERIAL_ECHO_SP(12);
           if (pin == 46) {
-            print_input_or_output(GET_OUTPUT(46));
-            SERIAL_PROTOCOL(READ(46));
+            print_input_or_output(IS_OUTPUT(46));
+            SERIAL_CHAR('0' + READ(46));
           }
           else {
-            print_input_or_output(GET_OUTPUT(47));
-            SERIAL_PROTOCOL(READ(47));
+            print_input_or_output(IS_OUTPUT(47));
+            SERIAL_CHAR('0' + READ(47));
           }
         }
         else
       #endif
       {
         if (GET_PINMODE(pin)) {
-          SERIAL_PROTOCOL_SP(MAX_NAME_LENGTH - 16);
+          SERIAL_ECHO_SP(MAX_NAME_LENGTH - 16);
           print_input_or_output(true);
-          SERIAL_PROTOCOL(digitalRead_mod(pin));
+          SERIAL_ECHO(digitalRead_mod(pin));
         }
         else {
           if (IS_ANALOG(pin)) {
-            sprintf_P(buffer, PSTR("   Analog in = %5d"), analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
+            sprintf_P(buffer, PSTR("   Analog in = %5ld"), (long)analogRead(DIGITAL_PIN_TO_ANALOG_PIN(pin)));
             SERIAL_ECHO(buffer);
             SERIAL_ECHOPGM("   ");
           }
@@ -221,7 +224,7 @@ inline void report_pin_state_extended(int8_t pin, bool ignore, bool extended = f
           SERIAL_ECHO_SP(MAX_NAME_LENGTH - 16);   // add padding if not an analog pin
 
           print_input_or_output(false);
-          SERIAL_PROTOCOL(digitalRead_mod(pin));
+          SERIAL_ECHO(digitalRead_mod(pin));
         }
         //if (!pwm_status(pin)) SERIAL_CHAR(' ');    // add padding if it's not a PWM pin
         if (extended) pwm_details(pin);  // report PWM capabilities only if doing an extended report

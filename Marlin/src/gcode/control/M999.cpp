@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -29,7 +29,7 @@
 /**
  * M999: Restart after being stopped
  *
- * Default behaviour is to flush the serial buffer and request
+ * Default behavior is to flush the serial buffer and request
  * a resend to the host starting on the last N line received.
  *
  * Sending "M999 S1" will resume printing without flushing the
@@ -38,7 +38,7 @@
  */
 void GcodeSuite::M999() {
   Running = true;
-  lcd_reset_alert_level();
+  ui.reset_alert_level();
 
   if (parser.boolval('S')) return;
 

@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -23,7 +23,7 @@
 /**
  * Open Motion controller with enable based extruders (Alpha!)
  *
- *                        ATMega644
+ *                        ATmega644
  *
  *                        +---\/---+
  *            (D 0) PB0  1|        |40  PA0 (AI 0 / D31)
@@ -76,10 +76,10 @@
  */
 
 #ifndef __AVR_ATmega644__
-  #error "Oops!  Make sure you have 'Sanguino' selected from the 'Tools -> Boards' menu."
+  #error "Oops! Select 'Sanguino' in 'Tools > Board' and ATmega644 in 'Tools > Processor.'"
 #endif
 
-#define BOARD_NAME         "Alpha OMCA"
+#define BOARD_NAME "Alpha OMCA"
 
 //
 // Limit Switches
@@ -107,12 +107,12 @@
 #define E0_DIR_PIN         27
 #define E0_ENABLE_PIN      24
 
-#define E1_STEP_PIN        -1 // 19
-#define E1_DIR_PIN         -1 // 18
+#define E1_STEP_PIN        -1   // 19
+#define E1_DIR_PIN         -1   // 18
 #define E1_ENABLE_PIN      24
 
-#define E2_STEP_PIN        -1 // 17
-#define E2_DIR_PIN         -1 // 16
+#define E2_STEP_PIN        -1   // 17
+#define E2_DIR_PIN         -1   // 16
 #define E2_ENABLE_PIN      24
 
 //
@@ -125,7 +125,9 @@
 //
 #define HEATER_0_PIN        4
 
-#define FAN_PIN             3
+#ifndef FAN_PIN
+  #define FAN_PIN           3
+#endif
 
 //
 // Misc. Functions

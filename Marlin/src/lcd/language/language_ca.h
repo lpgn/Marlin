@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Catalan
@@ -27,11 +28,8 @@
  * See also http://marlinfw.org/docs/development/lcd_language.html
  *
  */
-#ifndef LANGUAGE_CA_H
-#define LANGUAGE_CA_H
 
-#define MAPPER_C2C3  // because of "ó"
-#define DISPLAY_CHARSET_ISO10646_1
+#define CHARSIZE 2
 
 #define WELCOME_MSG                         MACHINE_NAME _UxGT(" preparada.")
 #define MSG_SD_INSERTED                     _UxGT("Targeta detectada.")
@@ -53,12 +51,12 @@
 #define MSG_SET_HOME_OFFSETS                _UxGT("Ajusta decalatge")
 #define MSG_HOME_OFFSETS_APPLIED            _UxGT("Decalatge aplicat")
 #define MSG_SET_ORIGIN                      _UxGT("Estableix origen")
-#define MSG_PREHEAT_1                       _UxGT("Preescalfa PLA")
+#define MSG_PREHEAT_1                       _UxGT("Preescalfa " PREHEAT_1_LABEL)
 #define MSG_PREHEAT_1_N                     MSG_PREHEAT_1 _UxGT(" ")
 #define MSG_PREHEAT_1_ALL                   MSG_PREHEAT_1 _UxGT(" Tot")
 #define MSG_PREHEAT_1_BEDONLY               MSG_PREHEAT_1 _UxGT(" Llit")
 #define MSG_PREHEAT_1_SETTINGS              MSG_PREHEAT_1 _UxGT(" Conf.")
-#define MSG_PREHEAT_2                       _UxGT("Preescalfa ABS")
+#define MSG_PREHEAT_2                       _UxGT("Preescalfa " PREHEAT_2_LABEL)
 #define MSG_PREHEAT_2_N                     MSG_PREHEAT_2 _UxGT(" ")
 #define MSG_PREHEAT_2_ALL                   MSG_PREHEAT_2 _UxGT(" Tot")
 #define MSG_PREHEAT_2_BEDONLY               MSG_PREHEAT_2 _UxGT(" Llit")
@@ -71,6 +69,7 @@
 #define MSG_MOVE_AXIS                       _UxGT("Mou eixos")
 #define MSG_BED_LEVELING                    _UxGT("Anivella llit")
 #define MSG_LEVEL_BED                       _UxGT("Anivella llit")
+
 #define MSG_MOVING                          _UxGT("Movent..")
 #define MSG_FREE_XY                         _UxGT("XY lliures")
 #define MSG_MOVE_X                          _UxGT("Mou X")
@@ -91,8 +90,8 @@
 #define MSG_MAX                             LCD_STR_THERMOMETER _UxGT(" Max")
 #define MSG_FACTOR                          LCD_STR_THERMOMETER _UxGT(" Fact")
 #define MSG_AUTOTEMP                        _UxGT("Autotemp")
-#define MSG_ON                              _UxGT("On ")
-#define MSG_OFF                             _UxGT("Off")
+#define MSG_LCD_ON                          _UxGT("On")
+#define MSG_LCD_OFF                         _UxGT("Off")
 #define MSG_PID_P                           _UxGT("PID-P")
 #define MSG_PID_I                           _UxGT("PID-I")
 #define MSG_PID_D                           _UxGT("PID-D")
@@ -100,9 +99,15 @@
 #define MSG_SELECT                          _UxGT("Select")
 #define MSG_ACC                             _UxGT("Accel")
 #define MSG_JERK                            _UxGT("Jerk")
-#define MSG_VX_JERK                         _UxGT("Vx-jerk")
-#define MSG_VY_JERK                         _UxGT("Vy-jerk")
-#define MSG_VZ_JERK                         _UxGT("Vz-jerk")
+#if IS_KINEMATIC
+  #define MSG_VA_JERK                       _UxGT("Va-jerk")
+  #define MSG_VB_JERK                       _UxGT("Vb-jerk")
+  #define MSG_VC_JERK                       _UxGT("Vc-jerk")
+#else
+  #define MSG_VA_JERK                       _UxGT("Vx-jerk")
+  #define MSG_VB_JERK                       _UxGT("Vy-jerk")
+  #define MSG_VC_JERK                       _UxGT("Vz-jerk")
+#endif
 #define MSG_VE_JERK                         _UxGT("Ve-jerk")
 #define MSG_VMAX                            _UxGT("Vmax ")
 #define MSG_VMIN                            _UxGT("Vmin")
@@ -111,15 +116,22 @@
 #define MSG_A_RETRACT                       _UxGT("Accel. retracc")
 #define MSG_A_TRAVEL                        _UxGT("Accel. Viatge")
 #define MSG_STEPS_PER_MM                    _UxGT("Passos/mm")
-#define MSG_XSTEPS                          _UxGT("Xpassos/mm")
-#define MSG_YSTEPS                          _UxGT("Ypassos/mm")
-#define MSG_ZSTEPS                          _UxGT("Zpassos/mm")
+#if IS_KINEMATIC
+  #define MSG_ASTEPS                        _UxGT("Apassos/mm")
+  #define MSG_BSTEPS                        _UxGT("Bpassos/mm")
+  #define MSG_CSTEPS                        _UxGT("Cpassos/mm")
+#else
+  #define MSG_ASTEPS                        _UxGT("Xpassos/mm")
+  #define MSG_BSTEPS                        _UxGT("Ypassos/mm")
+  #define MSG_CSTEPS                        _UxGT("Zpassos/mm")
+#endif
 #define MSG_ESTEPS                          _UxGT("Epassos/mm")
 #define MSG_E1STEPS                         _UxGT("E1passos/mm")
 #define MSG_E2STEPS                         _UxGT("E2passos/mm")
 #define MSG_E3STEPS                         _UxGT("E3passos/mm")
 #define MSG_E4STEPS                         _UxGT("E4passos/mm")
 #define MSG_E5STEPS                         _UxGT("E5passos/mm")
+#define MSG_E6STEPS                         _UxGT("E6passos/mm")
 #define MSG_TEMPERATURE                     _UxGT("Temperatura")
 #define MSG_MOTION                          _UxGT("Moviment")
 #define MSG_FILAMENT                        _UxGT("Filament")
@@ -140,7 +152,6 @@
 #define MSG_NO_CARD                         _UxGT("No hi ha targeta")
 #define MSG_DWELL                           _UxGT("En repos...")
 #define MSG_USERWAIT                        _UxGT("Esperant usuari..")
-#define MSG_RESUMING                        _UxGT("Reprenent imp.")
 #define MSG_PRINT_ABORTED                   _UxGT("Imp. cancelada")
 #define MSG_NO_MOVE                         _UxGT("Sense moviment.")
 #define MSG_KILLED                          _UxGT("MATAT.")
@@ -148,14 +159,14 @@
 #define MSG_CONTROL_RETRACT                 _UxGT("Retreu mm")
 #define MSG_CONTROL_RETRACT_SWAP            _UxGT("Swap Retreure mm")
 #define MSG_CONTROL_RETRACTF                _UxGT("Retreu V")
-#define MSG_CONTROL_RETRACT_ZLIFT           _UxGT("Aixeca mm")
+#define MSG_CONTROL_RETRACT_ZHOP            _UxGT("Aixeca mm")
 #define MSG_CONTROL_RETRACT_RECOVER         _UxGT("DesRet +mm")
 #define MSG_CONTROL_RETRACT_RECOVER_SWAP    _UxGT("Swap DesRet +mm")
 #define MSG_CONTROL_RETRACT_RECOVERF        _UxGT("DesRet V")
 #define MSG_AUTORETRACT                     _UxGT("Auto retraccio")
 #define MSG_FILAMENTCHANGE                  _UxGT("Canvia filament")
 #define MSG_INIT_SDCARD                     _UxGT("Inicialitza SD")
-#define MSG_CNG_SDCARD                      _UxGT("Canvia SD")
+#define MSG_CHANGE_SDCARD                   _UxGT("Canvia SD")
 #define MSG_ZPROBE_OUT                      _UxGT("Sonda Z fora")
 #define MSG_BLTOUCH_RESET                   _UxGT("Reinicia BLTouch")
 #define MSG_HOME                            _UxGT("Home")  // Used as MSG_HOME " " MSG_X MSG_Y MSG_Z " " MSG_FIRST
@@ -172,16 +183,14 @@
 #define MSG_ERR_MINTEMP                     _UxGT("Err: TEMP MINIMA")
 #define MSG_ERR_MAXTEMP_BED                 _UxGT("Err: TEMPMAX LLIT")
 #define MSG_ERR_MINTEMP_BED                 _UxGT("Err: TEMPMIN LLIT")
-#define MSG_ERR_Z_HOMING                    _UxGT("G28 Z No permes")
+#define MSG_ERR_Z_HOMING                    MSG_HOME _UxGT(" ") MSG_X MSG_Y _UxGT(" ") MSG_FIRST
 #define MSG_HALTED                          _UxGT("IMPRESSORA PARADA")
 #define MSG_PLEASE_RESET                    _UxGT("Reinicieu")
 #define MSG_SHORT_DAY                       _UxGT("d") // One character only
 #define MSG_SHORT_HOUR                      _UxGT("h") // One character only
 #define MSG_SHORT_MINUTE                    _UxGT("m") // One character only
 #define MSG_HEATING                         _UxGT("Escalfant...")
-#define MSG_HEATING_COMPLETE                _UxGT("Escalfament fet.")
-#define MSG_BED_HEATING                     _UxGT("Escalfant llit")
-#define MSG_BED_DONE                        _UxGT("Llit fet.")
+#define MSG_BED_HEATING                     _UxGT("Escalfant llit...")
 #define MSG_DELTA_CALIBRATE                 _UxGT("Calibratge Delta")
 #define MSG_DELTA_CALIBRATE_X               _UxGT("Calibra X")
 #define MSG_DELTA_CALIBRATE_Y               _UxGT("Calibra Y")
@@ -219,11 +228,7 @@
 #define MSG_DRIVE_STRENGTH                  _UxGT("Força motor")
 #define MSG_DAC_PERCENT                     _UxGT("Driver %")
 #define MSG_DAC_EEPROM_WRITE                _UxGT("DAC EEPROM Write")
-#define MSG_FILAMENT_CHANGE_HEADER          _UxGT("PRINT PAUSED")
-#define MSG_FILAMENT_CHANGE_OPTION_HEADER   _UxGT("RESUME OPTIONS:")
-#define MSG_FILAMENT_CHANGE_OPTION_EXTRUDE  _UxGT("Extrudeix mes")
 #define MSG_FILAMENT_CHANGE_OPTION_RESUME   _UxGT("Repren impressió")
-#define MSG_FILAMENT_CHANGE_MINTEMP         _UxGT("Temp minima es ")
 
 //
 // Filament Change screens show up to 3 lines on a 4-line display
@@ -244,8 +249,6 @@
   #define MSG_FILAMENT_CHANGE_HEATING_2       _UxGT("Espereu...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Esperant carrega")
   #define MSG_FILAMENT_CHANGE_LOAD_2          _UxGT("de filament")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Esperant per")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_2       _UxGT("extreure filament")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Esperant per")
   #define MSG_FILAMENT_CHANGE_RESUME_2        _UxGT("reprendre")
 #else // LCD_HEIGHT < 4
@@ -254,8 +257,5 @@
   #define MSG_FILAMENT_CHANGE_INSERT_1        _UxGT("Insereix i prem")
   #define MSG_FILAMENT_CHANGE_HEATING_1       _UxGT("Escalfant...")
   #define MSG_FILAMENT_CHANGE_LOAD_1          _UxGT("Carregant...")
-  #define MSG_FILAMENT_CHANGE_EXTRUDE_1       _UxGT("Extrudint...")
   #define MSG_FILAMENT_CHANGE_RESUME_1        _UxGT("Reprenent...")
 #endif // LCD_HEIGHT < 4
-
-#endif // LANGUAGE_CA_H

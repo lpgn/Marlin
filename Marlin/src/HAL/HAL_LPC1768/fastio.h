@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,11 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
-  This code contributed by Triffid_Hunter and modified by Kliment
-  why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
-*/
+ * Fast I/O Routines for LPC1768/9
+ * Use direct port manipulation to save scads of processor time.
+ * Contributed by Triffid_Hunter and modified by Kliment, thinkyhead, Bob-the-Kuhn, et.al.
+ */
 
 /**
  * Description: Fast IO functions LPC1768
@@ -31,92 +33,90 @@
  * For TARGET LPC1768
  */
 
-#ifndef _FASTIO_LPC1768_H
-#define _FASTIO_LPC1768_H
+#include "../shared/Marduino.h"
 
-#include <LPC17xx.h>
-#include "arduino.h"
-#include "pinmapping.h"
+#define PWM_PIN(P)            true // all pins are PWM capable
 
-bool useable_hardware_PWM(uint8_t pin);
-#define USEABLE_HARDWARE_PWM(pin) useable_hardware_PWM(pin)
+#define LPC_PIN(pin)          gpio_pin(pin)
+#define LPC_GPIO(port)        gpio_port(port)
 
-#define LPC_PORT_OFFSET         (0x0020)
-#define LPC_PIN(pin)            (1UL << pin)
-#define LPC_GPIO(port)          ((volatile LPC_GPIO_TypeDef *)(LPC_GPIO0_BASE + LPC_PORT_OFFSET * port))
+#define SET_DIR_INPUT(IO)     gpio_set_input(IO)
+#define SET_DIR_OUTPUT(IO)    gpio_set_output(IO)
 
-#define SET_DIR_INPUT(IO)       (LPC_GPIO(DIO ## IO ## _PORT)->FIODIR &= ~LPC_PIN(DIO ## IO ##_PIN))
-#define SET_DIR_OUTPUT(IO)      (LPC_GPIO(DIO ## IO ## _PORT)->FIODIR |=  LPC_PIN(DIO ## IO ##_PIN))
+#define SET_MODE(IO, mode)    pinMode(IO, mode)
 
-#define SET_MODE(IO, mode)      (pin_mode((DIO ## IO ## _PORT, DIO ## IO ## _PIN), mode))
+#define WRITE_PIN_SET(IO)     gpio_set(IO)
+#define WRITE_PIN_CLR(IO)     gpio_clear(IO)
 
-#define WRITE_PIN_SET(IO)       (LPC_GPIO(DIO ## IO ## _PORT)->FIOSET = LPC_PIN(DIO ## IO ##_PIN))
-#define WRITE_PIN_CLR(IO)       (LPC_GPIO(DIO ## IO ## _PORT)->FIOCLR = LPC_PIN(DIO ## IO ##_PIN))
-
-#define READ_PIN(IO)            ((LPC_GPIO(DIO ## IO ## _PORT)->FIOPIN & LPC_PIN(DIO ## IO ##_PIN)) ? 1 : 0)
-#define WRITE_PIN(IO, v)        ((v) ? WRITE_PIN_SET(IO) : WRITE_PIN_CLR(IO))
+#define READ_PIN(IO)          gpio_get(IO)
+#define WRITE_PIN(IO,V)       gpio_set(IO, V)
 
 /**
-  magic I/O routines
-  now you can simply SET_OUTPUT(STEP); WRITE(STEP, 1); WRITE(STEP, 0);
-*/
+ * Magic I/O routines
+ *
+ * Now you can simply SET_OUTPUT(STEP); WRITE(STEP, HIGH); WRITE(STEP, LOW);
+ *
+ * Why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
+ */
 
 /// Read a pin
-#define _READ(IO) READ_PIN(IO)
+#define _READ(IO)             READ_PIN(IO)
 
 /// Write to a pin
-#define _WRITE_VAR(IO, v) digitalWrite(IO, v)
+#define _WRITE_VAR(IO,V)      digitalWrite(IO,V)
 
-#define _WRITE(IO, v) WRITE_PIN(IO, v)
+#define _WRITE(IO,V)          WRITE_PIN(IO,V)
 
 /// toggle a pin
-#define _TOGGLE(IO) _WRITE(IO, !READ(IO))
+#define _TOGGLE(IO)           _WRITE(IO, !READ(IO))
 
 /// set pin as input
-#define _SET_INPUT(IO) SET_DIR_INPUT(IO)
+#define _SET_INPUT(IO)        SET_DIR_INPUT(IO)
 
 /// set pin as output
-#define _SET_OUTPUT(IO) SET_DIR_OUTPUT(IO)
+#define _SET_OUTPUT(IO)       SET_DIR_OUTPUT(IO)
 
 /// set pin as input with pullup mode
-#define _PULLUP(IO, v) (pinMode(IO, (v!=LOW ? INPUT_PULLUP : INPUT)))
+#define _PULLUP(IO,V)         pinMode(IO, (V) ? INPUT_PULLUP : INPUT)
+
+/// set pin as input with pulldown mode
+#define _PULLDOWN(IO,V)       pinMode(IO, (V) ? INPUT_PULLDOWN : INPUT)
 
 /// check if pin is an input
-#define _GET_INPUT(IO)
+#define _IS_INPUT(IO)         (!gpio_get_dir(IO))
+
 /// check if pin is an output
-#define _GET_OUTPUT(IO)
-
-/// check if pin is an timer
-#define _GET_TIMER(IO)
-
-//  why double up on these macros? see http://gcc.gnu.org/onlinedocs/cpp/Stringification.html
+#define _IS_OUTPUT(IO)        (gpio_get_dir(IO))
 
 /// Read a pin wrapper
-#define READ(IO)  _READ(IO)
+#define READ(IO)              _READ(IO)
 
 /// Write to a pin wrapper
-#define WRITE_VAR(IO, v)  _WRITE_VAR(IO, v)
-#define WRITE(IO, v)  _WRITE(IO, v)
+#define WRITE_VAR(IO,V)       _WRITE_VAR(IO,V)
+#define WRITE(IO,V)           _WRITE(IO,V)
 
 /// toggle a pin wrapper
-#define TOGGLE(IO)  _TOGGLE(IO)
+#define TOGGLE(IO)            _TOGGLE(IO)
 
 /// set pin as input wrapper
-#define SET_INPUT(IO)  _SET_INPUT(IO)
+#define SET_INPUT(IO)         _SET_INPUT(IO)
 /// set pin as input with pullup wrapper
-#define SET_INPUT_PULLUP(IO) do{ _SET_INPUT(IO); _PULLUP(IO, HIGH); }while(0)
-/// set pin as output wrapper
-#define SET_OUTPUT(IO)  do{ _SET_OUTPUT(IO); _WRITE(IO, LOW); }while(0)
+#define SET_INPUT_PULLUP(IO)  do{ _SET_INPUT(IO); _PULLUP(IO, HIGH); }while(0)
+/// set pin as input with pulldown wrapper
+#define SET_INPUT_PULLDOWN(IO) do{ _SET_INPUT(IO); _PULLDOWN(IO, HIGH); }while(0)
+/// set pin as output wrapper  -  reads the pin and sets the output to that value
+#define SET_OUTPUT(IO)        do{ _WRITE(IO, _READ(IO)); _SET_OUTPUT(IO); }while(0)
+// set pin as PWM
+#define SET_PWM(IO)           SET_OUTPUT(IO)
 
 /// check if pin is an input wrapper
-#define GET_INPUT(IO)  _GET_INPUT(IO) // todo: Never used?
+#define IS_INPUT(IO)          _IS_INPUT(IO)
 /// check if pin is an output wrapper
-#define GET_OUTPUT(IO)  _GET_OUTPUT(IO) //todo: Never Used?
-
-/// check if pin is an timer wrapper
-#define GET_TIMER(IO)  _GET_TIMER(IO)
+#define IS_OUTPUT(IO)         _IS_OUTPUT(IO)
 
 // Shorthand
-#define OUT_WRITE(IO, v) { SET_OUTPUT(IO); WRITE(IO, v); }
+#define OUT_WRITE(IO,V)       do{ SET_OUTPUT(IO); WRITE(IO,V); }while(0)
 
-#endif // _FASTIO_LPC1768_H
+// digitalRead/Write wrappers
+#define extDigitalRead(IO)    digitalRead(IO)
+#define extDigitalWrite(IO,V) digitalWrite(IO,V)

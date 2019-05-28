@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -24,13 +24,12 @@
  * Geeetech GT2560 Revision A+ board pin assignments
  */
 
+#define BOARD_NAME "GT2560 Rev.A+"
+
 #include "pins_GT2560_REV_A.h"
 
-#undef BOARD_NAME
-#define BOARD_NAME  "GT2560 Rev.A+"
-
 #if ENABLED(BLTOUCH)
-  #define SERVO0_PIN  32
-#else
   #define SERVO0_PIN  11
+#else
+  #define SERVO0_PIN  32
 #endif

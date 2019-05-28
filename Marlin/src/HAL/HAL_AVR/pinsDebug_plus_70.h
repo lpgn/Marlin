@@ -1,7 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2017 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -20,22 +19,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
- *  structurs for 2560 family boards that use morre than 70 pins
+ * Structures for 2560 family boards that use more than 70 pins
  */
 
-#ifndef __PINSDEBUG_PLUS_70_H__
-#define __PINSDEBUG_PLUS_70_H__
-
 #undef NUM_DIGITAL_PINS
-#if MOTHERBOARD == BOARD_BQ_ZUM_MEGA_3D
+#if MB(BQ_ZUM_MEGA_3D)
   #define NUM_DIGITAL_PINS            85
-#elif MOTHERBOARD == BOARD_MIGHTYBOARD_REVE
+#elif MB(MIGHTYBOARD_REVE)
   #define NUM_DIGITAL_PINS            80
-#elif MOTHERBOARD == BOARD_MINIRAMBO
+#elif MB(MINIRAMBO)
   #define NUM_DIGITAL_PINS            85
-#elif MOTHERBOARD == BOARD_SCOOVO_X9H
+#elif MB(SCOOVO_X9H)
   #define NUM_DIGITAL_PINS            85
 #endif
 
@@ -336,6 +333,3 @@ const uint8_t PROGMEM digital_pin_to_timer_PGM_plus_70[] = {
  *  PCINT14 J5 76
  *  PCINT15 J6 77
  */
-
-
-#endif // __PINSDEBUG_PLUS_70_H__

@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -27,14 +27,15 @@
  * M105: Read hot end and bed temperature
  */
 void GcodeSuite::M105() {
-  if (get_target_extruder_from_command()) return;
 
-  #if HAS_TEMP_HOTEND || HAS_TEMP_BED
-    SERIAL_PROTOCOLPGM(MSG_OK);
-    thermalManager.print_heaterstates();
-  #else // !HAS_TEMP_HOTEND && !HAS_TEMP_BED
-    SERIAL_ERROR_START();
-    SERIAL_ERRORLNPGM(MSG_ERR_NO_THERMISTORS);
+  const int8_t target_extruder = get_target_extruder_from_command();
+  if (target_extruder < 0) return;
+
+  #if HAS_TEMP_SENSOR
+    SERIAL_ECHOPGM(MSG_OK);
+    thermalManager.print_heater_states(target_extruder);
+  #else // !HAS_TEMP_SENSOR
+    SERIAL_ERROR_MSG(MSG_ERR_NO_THERMISTORS);
   #endif
 
   SERIAL_EOL();

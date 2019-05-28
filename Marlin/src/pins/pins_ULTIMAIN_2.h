@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -33,7 +33,7 @@
  */
 
 #ifndef __AVR_ATmega2560__
-  #error "Oops!  Make sure you have 'Arduino Mega 2560' selected from the 'Tools -> Boards' menu."
+  #error "Oops! Select 'Arduino/Genuino Mega or Mega 2560' in 'Tools > Board.'"
 #endif
 
 #define DEFAULT_MACHINE_NAME    "Ultimaker"
@@ -93,7 +93,11 @@
 #define HEATER_1_PIN        3
 #define HEATER_BED_PIN      4
 
-#define FAN_PIN             7
+#ifndef FAN_PIN
+  #define FAN_PIN           7
+#endif
+
+#define ORIG_E0_AUTO_FAN_PIN 77
 
 //
 // Misc. Functions
@@ -101,8 +105,8 @@
 #define SDSS               53
 #define SD_DETECT_PIN      39
 #define LED_PIN             8
-#define SAFETY_TRIGGERED_PIN     28 // PIN to detect the safety circuit has triggered
-#define MAIN_VOLTAGE_MEASURE_PIN 14 // ANALOG PIN to measure the main voltage, with a 100k - 4k7 resitor divider.
+#define SAFETY_TRIGGERED_PIN     28   // PIN to detect the safety circuit has triggered
+#define MAIN_VOLTAGE_MEASURE_PIN 14   // ANALOG PIN to measure the main voltage, with a 100k - 4k7 resitor divider.
 
 //
 // LCD / Controller
@@ -127,8 +131,8 @@
 #if ENABLED(SPINDLE_LASER_ENABLE)   // use the LED_PIN for spindle speed control or case light
   #undef LED_PIN
   #define SPINDLE_DIR_PIN          16
-  #define SPINDLE_LASER_ENABLE_PIN 17  // Pin should have a pullup!
-  #define SPINDLE_LASER_PWM_PIN     8  // MUST BE HARDWARE PWM
+  #define SPINDLE_LASER_ENA_PIN    17   // Pin should have a pullup!
+  #define SPINDLE_LASER_PWM_PIN     8   // MUST BE HARDWARE PWM
 #else
   #undef LED_PIN
   #define CASE_LIGHT_PIN            8

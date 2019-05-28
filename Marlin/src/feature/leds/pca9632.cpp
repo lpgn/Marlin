@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -30,6 +30,8 @@
 #if ENABLED(PCA9632)
 
 #include "pca9632.h"
+#include "leds.h"
+#include <Wire.h>
 
 #define PCA9632_MODE1_VALUE   0b00000001 //(ALLCALL)
 #define PCA9632_MODE2_VALUE   0b00010101 //(DIMMING, INVERT, CHANGE ON STOP,TOTEM)
@@ -72,14 +74,14 @@
 byte PCA_init = 0;
 
 static void PCA9632_WriteRegister(const byte addr, const byte regadd, const byte value) {
-  Wire.beginTransmission(addr);
+  Wire.beginTransmission(I2C_ADDRESS(addr));
   Wire.write(regadd);
   Wire.write(value);
   Wire.endTransmission();
 }
 
 static void PCA9632_WriteAllRegisters(const byte addr, const byte regadd, const byte value1, const byte value2, const byte value3) {
-  Wire.beginTransmission(addr);
+  Wire.beginTransmission(I2C_ADDRESS(addr));
   Wire.write(PCA9632_AUTO_IND | regadd);
   Wire.write(value1);
   Wire.write(value2);
@@ -89,7 +91,7 @@ static void PCA9632_WriteAllRegisters(const byte addr, const byte regadd, const 
 
 #if 0
   static byte PCA9632_ReadRegister(const byte addr, const byte regadd) {
-    Wire.beginTransmission(addr);
+    Wire.beginTransmission(I2C_ADDRESS(addr));
     Wire.write(regadd);
     const byte value = Wire.read();
     Wire.endTransmission();
@@ -97,19 +99,19 @@ static void PCA9632_WriteAllRegisters(const byte addr, const byte regadd, const 
   }
 #endif
 
-void pca9632_set_led_color(const byte r, const byte g, const byte b) {
+void pca9632_set_led_color(const LEDColor &color) {
+  Wire.begin();
   if (!PCA_init) {
     PCA_init = 1;
-    Wire.begin();
     PCA9632_WriteRegister(PCA9632_ADDRESS,PCA9632_MODE1, PCA9632_MODE1_VALUE);
     PCA9632_WriteRegister(PCA9632_ADDRESS,PCA9632_MODE2, PCA9632_MODE2_VALUE);
   }
 
-  const byte LEDOUT = (r ? LED_PWM << PCA9632_RED : 0)
-                    | (g ? LED_PWM << PCA9632_GRN : 0)
-                    | (b ? LED_PWM << PCA9632_BLU : 0);
+  const byte LEDOUT = (color.r ? LED_PWM << PCA9632_RED : 0)
+                    | (color.g ? LED_PWM << PCA9632_GRN : 0)
+                    | (color.b ? LED_PWM << PCA9632_BLU : 0);
 
-  PCA9632_WriteAllRegisters(PCA9632_ADDRESS,PCA9632_PWM0, r, g, b);
+  PCA9632_WriteAllRegisters(PCA9632_ADDRESS,PCA9632_PWM0, color.r, color.g, color.b);
   PCA9632_WriteRegister(PCA9632_ADDRESS,PCA9632_LEDOUT, LEDOUT);
 }
 

@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -28,35 +28,115 @@
 #include "../../../module/planner.h"
 #include "../../../module/stepper.h"
 
+#if ENABLED(EXTRA_LIN_ADVANCE_K)
+  float saved_extruder_advance_K[EXTRUDERS];
+  uint8_t lin_adv_slot = 0;
+#endif
+
+
 /**
- * M900: Set and/or Get advance K factor and WH/D ratio
- *
- *  K<factor>                  Set advance K factor
- *  R<ratio>                   Set ratio directly (overrides WH/D)
- *  W<width> H<height> D<diam> Set ratio from WH/D
+ * M900: Get or Set Linear Advance K-factor
+ *  T<tool>     Which tool to address
+ *  K<factor>   Set current advance K factor (Slot 0).
+ *  L<factor>   Set secondary advance K factor (Slot 1). Requires EXTRA_LIN_ADVANCE_K.
+ *  S<0/1>      Activate slot 0 or 1. Requires EXTRA_LIN_ADVANCE_K.
  */
 void GcodeSuite::M900() {
-  stepper.synchronize();
 
-  const float newK = parser.floatval('K', -1);
-  if (newK >= 0) planner.extruder_advance_k = newK;
+  #if EXTRUDERS < 2
+    constexpr uint8_t tmp_extruder = 0;
+  #else
+    const uint8_t tmp_extruder = parser.intval('T', active_extruder);
+    if (tmp_extruder >= EXTRUDERS) {
+      SERIAL_ECHOLNPGM("?T value out of range.");
+      return;
+    }
+  #endif
 
-  float newR = parser.floatval('R', -1);
-  if (newR < 0) {
-    const float newD = parser.floatval('D', -1),
-                newW = parser.floatval('W', -1),
-                newH = parser.floatval('H', -1);
-    if (newD >= 0 && newW >= 0 && newH >= 0)
-      newR = newD ? (newW * newH) / CIRCLE_AREA(newD * 0.5) : 0;
-  }
-  if (newR >= 0) planner.advance_ed_ratio = newR;
+  #if ENABLED(EXTRA_LIN_ADVANCE_K)
 
-  SERIAL_ECHO_START();
-  SERIAL_ECHOPAIR("Advance K=", planner.extruder_advance_k);
-  SERIAL_ECHOPGM(" E/D=");
-  const float ratio = planner.advance_ed_ratio;
-  if (ratio) SERIAL_ECHO(ratio); else SERIAL_ECHOPGM("Auto");
-  SERIAL_EOL();
+    bool ext_slot = TEST(lin_adv_slot, tmp_extruder);
+
+    if (parser.seenval('S')) {
+      const bool slot = parser.value_bool();
+      if (ext_slot != slot) {
+        ext_slot = slot;
+        SET_BIT_TO(lin_adv_slot, tmp_extruder, slot);
+        planner.synchronize();
+        const float temp = planner.extruder_advance_K[tmp_extruder];
+        planner.extruder_advance_K[tmp_extruder] = saved_extruder_advance_K[tmp_extruder];
+        saved_extruder_advance_K[tmp_extruder] = temp;
+      }
+    }
+
+    if (parser.seenval('K')) {
+      const float newK = parser.value_float();
+      if (WITHIN(newK, 0, 10)) {
+        if (ext_slot)
+          saved_extruder_advance_K[tmp_extruder] = newK;
+        else {
+          planner.synchronize();
+          planner.extruder_advance_K[tmp_extruder] = newK;
+        }
+      }
+      else
+        SERIAL_ECHOLNPGM("?K value out of range (0-10).");
+    }
+
+    if (parser.seenval('L')) {
+      const float newL = parser.value_float();
+      if (WITHIN(newL, 0, 10)) {
+        if (!ext_slot)
+          saved_extruder_advance_K[tmp_extruder] = newL;
+        else {
+          planner.synchronize();
+          planner.extruder_advance_K[tmp_extruder] = newL;
+        }
+      }
+      else
+        SERIAL_ECHOLNPGM("?L value out of range (0-10).");
+    }
+
+    if (!parser.seen_any()) {
+      #if EXTRUDERS < 2
+        SERIAL_ECHOLNPAIR("Advance S", ext_slot, " K", planner.extruder_advance_K[0]);
+        SERIAL_ECHOLNPAIR("(Slot ", 1 - ext_slot, " K", saved_extruder_advance_K[0], ")");
+      #else
+        LOOP_L_N(i, EXTRUDERS) {
+          const int slot = (int)TEST(lin_adv_slot, i);
+          SERIAL_ECHOLNPAIR("Advance T", int(i), " S", slot, " K", planner.extruder_advance_K[i]);
+          SERIAL_ECHOLNPAIR("(Slot ", 1 - slot, " K", saved_extruder_advance_K[i], ")");
+          SERIAL_EOL();
+        }
+      #endif
+    }
+
+  #else
+
+    if (parser.seenval('K')) {
+      const float newK = parser.value_float();
+      if (WITHIN(newK, 0, 10)) {
+        planner.synchronize();
+        planner.extruder_advance_K[tmp_extruder] = newK;
+      }
+      else
+        SERIAL_ECHOLNPGM("?K value out of range (0-10).");
+    }
+    else {
+      SERIAL_ECHO_START();
+      #if EXTRUDERS < 2
+        SERIAL_ECHOLNPAIR("Advance K=", planner.extruder_advance_K[0]);
+      #else
+        SERIAL_ECHOPGM("Advance K");
+        LOOP_L_N(i, EXTRUDERS) {
+          SERIAL_CHAR(' '); SERIAL_ECHO(int(i));
+          SERIAL_CHAR('='); SERIAL_ECHO(planner.extruder_advance_K[i]);
+        }
+        SERIAL_EOL();
+      #endif
+    }
+
+  #endif
 }
 
 #endif // LIN_ADVANCE

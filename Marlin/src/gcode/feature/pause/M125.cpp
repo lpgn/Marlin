@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -28,16 +28,22 @@
 #include "../../parser.h"
 #include "../../../feature/pause.h"
 #include "../../../module/motion.h"
+#include "../../../sd/cardreader.h"
+#include "../../../module/printcounter.h"
+
+#if HAS_LCD_MENU
+  #include "../../../lcd/ultralcd.h"
+#endif
 
 /**
- * M125: Store current position and move to filament change position.
+ * M125: Store current position and move to parking position.
  *       Called on pause (by M25) to prevent material leaking onto the
  *       object. On resume (M24) the head will be moved back and the
  *       print will resume.
  *
- *       If Marlin is compiled without SD Card support, M125 can be
- *       used directly to pause the print and move to park position,
- *       resuming with a button click or M108.
+ *       When not actively SD printing, M125 simply moves to the park
+ *       position and waits, resuming with a button click or M108.
+ *       Without PARK_HEAD_ON_PAUSE the M125 command does nothing.
  *
  *    L = override retract length
  *    X = override X
@@ -45,53 +51,45 @@
  *    Z = override Z raise
  */
 void GcodeSuite::M125() {
-
   // Initial retract before move to filament change position
-  const float retract = parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
+  const float retract = -ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS) : 0
     #ifdef PAUSE_PARK_RETRACT_LENGTH
-      - (PAUSE_PARK_RETRACT_LENGTH)
+      + (PAUSE_PARK_RETRACT_LENGTH)
     #endif
-  ;
+  );
 
-  // Lift Z axis
-  const float z_lift = parser.linearval('Z')
-    #ifdef PAUSE_PARK_Z_ADD
-      + PAUSE_PARK_Z_ADD
-    #endif
-  ;
+  point_t park_point = NOZZLE_PARK_POINT;
 
   // Move XY axes to filament change position or given position
-  const float x_pos = parser.linearval('X')
-    #ifdef PAUSE_PARK_X_POS
-      + PAUSE_PARK_X_POS
-    #endif
-    #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
-      + (active_extruder ? hotend_offset[X_AXIS][active_extruder] : 0)
-    #endif
-  ;
-  const float y_pos = parser.linearval('Y')
-    #ifdef PAUSE_PARK_Y_POS
-      + PAUSE_PARK_Y_POS
-    #endif
-    #if HOTENDS > 1 && DISABLED(DUAL_X_CARRIAGE)
-      + (active_extruder ? hotend_offset[Y_AXIS][active_extruder] : 0)
-    #endif
-  ;
+  if (parser.seenval('X')) park_point.x = RAW_X_POSITION(parser.linearval('X'));
+  if (parser.seenval('Y')) park_point.y = RAW_X_POSITION(parser.linearval('Y'));
 
-  #if DISABLED(SDSUPPORT)
-    const bool job_running = print_job_timer.isRunning();
+  // Lift Z axis
+  if (parser.seenval('Z')) park_point.z = parser.linearval('Z');
+
+  #if HAS_HOTEND_OFFSET && DISABLED(DUAL_X_CARRIAGE, DELTA)
+    park_point.x += hotend_offset[X_AXIS][active_extruder];
+    park_point.y += hotend_offset[Y_AXIS][active_extruder];
   #endif
 
-  if (pause_print(retract, z_lift, x_pos, y_pos)) {
-    #if DISABLED(SDSUPPORT)
-      // Wait for lcd click or M108
-      wait_for_filament_reload();
+  #if ENABLED(SDSUPPORT)
+    const bool sd_printing = IS_SD_PRINTING();
+  #else
+    constexpr bool sd_printing = false;
+  #endif
 
-      // Return to print position and continue
-      resume_print();
+  #if HAS_LCD_MENU
+    lcd_pause_show_message(PAUSE_MESSAGE_PAUSING, PAUSE_MODE_PAUSE_PRINT);
+    const bool show_lcd = parser.seenval('P');
+  #else
+    constexpr bool show_lcd = false;
+  #endif
 
-      if (job_running) print_job_timer.start();
-    #endif
+  if (pause_print(retract, park_point, 0, show_lcd)) {
+    if (!sd_printing || show_lcd) {
+      wait_for_confirmation(false, 0);
+      resume_print(0, 0, PAUSE_PARK_RETRACT_LENGTH, 0);
+    }
   }
 }
 

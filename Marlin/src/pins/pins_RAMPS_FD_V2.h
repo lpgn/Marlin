@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -27,12 +27,25 @@
  * Use 1k thermistor tables
  */
 
-#define BOARD_NAME         "RAMPS-FD v2"
+#define BOARD_NAME "RAMPS-FD v2"
 
-#include "pins_RAMPS_FD.h"
+#ifndef E0_CS_PIN
+  #define E0_CS_PIN        69 // moved from A13 to A15 on v2.2, if not earlier
+#endif
+
+#include "pins_RAMPS_FD_V1.h"
 
 #undef INVERTED_HEATER_PINS
 #undef INVERTED_BED_PINS
 #undef INVERTED_FAN_PINS
 
 #define I2C_EEPROM
+#define E2END 0xFFFF // 64K in a 24C512
+
+#ifndef PS_ON_PIN
+  #define PS_ON_PIN        12
+#endif
+
+#ifndef FILWIDTH_PIN
+  #define FILWIDTH_PIN      5   // Analog Input on AUX2
+#endif

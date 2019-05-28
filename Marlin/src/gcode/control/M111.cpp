@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -28,20 +28,20 @@
 void GcodeSuite::M111() {
   if (parser.seen('S')) marlin_debug_flags = parser.byteval('S');
 
-  const static char str_debug_1[] PROGMEM = MSG_DEBUG_ECHO,
+  static const char str_debug_1[] PROGMEM = MSG_DEBUG_ECHO,
                     str_debug_2[] PROGMEM = MSG_DEBUG_INFO,
                     str_debug_4[] PROGMEM = MSG_DEBUG_ERRORS,
                     str_debug_8[] PROGMEM = MSG_DEBUG_DRYRUN,
                     str_debug_16[] PROGMEM = MSG_DEBUG_COMMUNICATION
                     #if ENABLED(DEBUG_LEVELING_FEATURE)
-                      , str_debug_32[] PROGMEM = MSG_DEBUG_LEVELING
+                      , str_debug_lvl[] PROGMEM = MSG_DEBUG_LEVELING
                     #endif
                     ;
 
-  const static char* const debug_strings[] PROGMEM = {
+  static PGM_P const debug_strings[] PROGMEM = {
     str_debug_1, str_debug_2, str_debug_4, str_debug_8, str_debug_16
     #if ENABLED(DEBUG_LEVELING_FEATURE)
-      , str_debug_32
+      , str_debug_lvl
     #endif
   };
 
@@ -58,6 +58,23 @@ void GcodeSuite::M111() {
   }
   else {
     SERIAL_ECHOPGM(MSG_DEBUG_OFF);
+    #if !defined(__AVR__) || !defined(USBCON)
+      #if ENABLED(SERIAL_STATS_RX_BUFFER_OVERRUNS)
+        SERIAL_ECHOPAIR("\nBuffer Overruns: ", MYSERIAL0.buffer_overruns());
+      #endif
+
+      #if ENABLED(SERIAL_STATS_RX_FRAMING_ERRORS)
+        SERIAL_ECHOPAIR("\nFraming Errors: ", MYSERIAL0.framing_errors());
+      #endif
+
+      #if ENABLED(SERIAL_STATS_DROPPED_RX)
+        SERIAL_ECHOPAIR("\nDropped bytes: ", MYSERIAL0.dropped());
+      #endif
+
+      #if ENABLED(SERIAL_STATS_MAX_RX_QUEUED)
+        SERIAL_ECHOPAIR("\nMax RX Queue Size: ", MYSERIAL0.rxMaxEnqueued());
+      #endif
+    #endif //  !defined(__AVR__) || !defined(USBCON)
   }
   SERIAL_EOL();
 }

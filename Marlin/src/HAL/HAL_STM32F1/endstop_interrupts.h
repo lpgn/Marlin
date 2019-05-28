@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -20,6 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /**
  * Endstop interrupts for Libmaple STM32F1 based targets.
@@ -36,7 +37,7 @@
  * Endstop Interrupts
  *
  * Without endstop interrupts the endstop pins must be polled continually in
- * the stepper-ISR via endstops.update(), most of the time finding no change.
+ * the temperature-ISR via endstops.update(), most of the time finding no change.
  * With this feature endstops.update() is called only when we know that at
  * least one endstop has changed state, saving valuable CPU cycles.
  *
@@ -46,46 +47,43 @@
  * (Located in Marlin/buildroot/share/pin_interrupt_test/pin_interrupt_test.ino)
  */
 
-#ifndef _ENDSTOP_INTERRUPTS_H_
-#define _ENDSTOP_INTERRUPTS_H_
+#include "../../module/endstops.h"
+
+// One ISR for all EXT-Interrupts
+void endstop_ISR(void) { endstops.update(); }
 
 void setup_endstop_interrupts(void) {
   #if HAS_X_MAX
-    pinMode(X_MAX_PIN, INPUT);
     attachInterrupt(X_MAX_PIN, endstop_ISR, CHANGE); // assign it
   #endif
   #if HAS_X_MIN
-    pinMode(X_MIN_PIN, INPUT);
     attachInterrupt(X_MIN_PIN, endstop_ISR, CHANGE);
   #endif
   #if HAS_Y_MAX
-    pinMode(Y_MAX_PIN, INPUT);
     attachInterrupt(Y_MAX_PIN, endstop_ISR, CHANGE);
   #endif
   #if HAS_Y_MIN
-    pinMode(Y_MIN_PIN, INPUT);
     attachInterrupt(Y_MIN_PIN, endstop_ISR, CHANGE);
   #endif
   #if HAS_Z_MAX
-    pinMode(Z_MAX_PIN, INPUT);
     attachInterrupt(Z_MAX_PIN, endstop_ISR, CHANGE);
   #endif
   #if HAS_Z_MIN
-    pinMode(Z_MIN_PIN, INPUT);
     attachInterrupt(Z_MIN_PIN, endstop_ISR, CHANGE);
   #endif
   #if HAS_Z2_MAX
-    pinMode(Z2_MAX_PIN, INPUT);
     attachInterrupt(Z2_MAX_PIN, endstop_ISR, CHANGE);
   #endif
   #if HAS_Z2_MIN
-    pinMode(Z2_MIN_PIN, INPUT);
     attachInterrupt(Z2_MIN_PIN, endstop_ISR, CHANGE);
   #endif
+  #if HAS_Z3_MAX
+    attachInterrupt(Z3_MAX_PIN, endstop_ISR, CHANGE);
+  #endif
+  #if HAS_Z3_MIN
+    attachInterrupt(Z3_MIN_PIN, endstop_ISR, CHANGE);
+  #endif
   #if HAS_Z_MIN_PROBE_PIN
-    pinMode(Z_MIN_PROBE_PIN, INPUT);
     attachInterrupt(Z_MIN_PROBE_PIN, endstop_ISR, CHANGE);
   #endif
 }
-
-#endif //_ENDSTOP_INTERRUPTS_H_

@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -21,7 +21,7 @@
  */
 
 /**
- * Marlin RGB LED general support
+ * leds.cpp - Marlin RGB LED general support
  */
 
 #include "../../inc/MarlinConfig.h"
@@ -30,44 +30,119 @@
 
 #include "leds.h"
 
-void set_led_color(
-  const uint8_t r, const uint8_t g, const uint8_t b
-  #if ENABLED(RGBW_LED) || ENABLED(NEOPIXEL_RGBW_LED)
-    , const uint8_t w
-    #if ENABLED(NEOPIXEL_RGBW_LED)
-      , bool isSequence
+#if ENABLED(BLINKM)
+  #include "blinkm.h"
+#endif
+
+#if ENABLED(PCA9632)
+  #include "pca9632.h"
+#endif
+
+#if ENABLED(PCA9533)
+  #include "SailfishRGB_LED.h"
+#endif
+
+#if ENABLED(LED_COLOR_PRESETS)
+  const LEDColor LEDLights::defaultLEDColor = MakeLEDColor(
+    LED_USER_PRESET_RED,
+    LED_USER_PRESET_GREEN,
+    LED_USER_PRESET_BLUE,
+    LED_USER_PRESET_WHITE,
+    LED_USER_PRESET_BRIGHTNESS
+  );
+#endif
+
+#if EITHER(LED_CONTROL_MENU, PRINTER_EVENT_LEDS)
+  LEDColor LEDLights::color;
+  bool LEDLights::lights_on;
+#endif
+
+LEDLights leds;
+
+void LEDLights::setup() {
+  #if EITHER(RGB_LED, RGBW_LED)
+    if (PWM_PIN(RGB_LED_R_PIN)) SET_PWM(RGB_LED_R_PIN); else SET_OUTPUT(RGB_LED_R_PIN);
+    if (PWM_PIN(RGB_LED_G_PIN)) SET_PWM(RGB_LED_G_PIN); else SET_OUTPUT(RGB_LED_G_PIN);
+    if (PWM_PIN(RGB_LED_B_PIN)) SET_PWM(RGB_LED_B_PIN); else SET_OUTPUT(RGB_LED_B_PIN);
+    #if ENABLED(RGBW_LED)
+      if (PWM_PIN(RGB_LED_W_PIN)) SET_PWM(RGB_LED_W_PIN); else SET_OUTPUT(RGB_LED_W_PIN);
     #endif
+  #endif
+  #if ENABLED(NEOPIXEL_LED)
+    setup_neopixel();
+  #endif
+  #if ENABLED(LED_USER_PRESET_STARTUP)
+    set_default();
+  #endif
+}
+
+void LEDLights::set_color(const LEDColor &incol
+  #if ENABLED(NEOPIXEL_LED)
+    , bool isSequence/*=false*/
   #endif
 ) {
 
-  #if ENABLED(NEOPIXEL_RGBW_LED)
-    if (neopixel_set_led_color(r, g, b, w, isSequence))
+  #if ENABLED(NEOPIXEL_LED)
+
+    const uint32_t neocolor = LEDColorWhite() == incol
+                            ? pixels.Color(NEO_WHITE)
+                            : pixels.Color(incol.r, incol.g, incol.b, incol.w);
+    static uint16_t nextLed = 0;
+
+    #ifdef NEOPIXEL_BKGD_LED_INDEX
+      if (NEOPIXEL_BKGD_LED_INDEX == nextLed) { nextLed++; return; }
+    #endif
+    pixels.setBrightness(incol.i);
+    if (!isSequence)
+      set_neopixel_color(neocolor);
+    else {
+      pixels.setPixelColor(nextLed, neocolor);
+      pixels.show();
+      if (++nextLed >= pixels.numPixels()) nextLed = 0;
       return;
+    }
+
   #endif
 
   #if ENABLED(BLINKM)
-    blinkm_set_led_color(r, g, b); // Use i2c to send the RGB components to the device.
+
+    // This variant uses i2c to send the RGB components to the device.
+    blinkm_set_led_color(incol);
+
   #endif
 
-  #if ENABLED(RGB_LED) || ENABLED(RGBW_LED)
-    // This variant uses 3 separate pins for the RGB components.
-    // If the pins can do PWM then their intensity will be set.
-    WRITE(RGB_LED_R_PIN, r ? HIGH : LOW);
-    WRITE(RGB_LED_G_PIN, g ? HIGH : LOW);
-    WRITE(RGB_LED_B_PIN, b ? HIGH : LOW);
-    analogWrite(RGB_LED_R_PIN, r);
-    analogWrite(RGB_LED_G_PIN, g);
-    analogWrite(RGB_LED_B_PIN, b);
+  #if EITHER(RGB_LED, RGBW_LED)
 
+    // This variant uses 3-4 separate pins for the RGB(W) components.
+    // If the pins can do PWM then their intensity will be set.
+    #define UPDATE_RGBW(C,c) do{ if (PWM_PIN(RGB_LED_##C##_PIN)) analogWrite(RGB_LED_##C##_PIN, incol.c); else WRITE(RGB_LED_##C##_PIN, incol.c ? HIGH : LOW); }while(0)
+    UPDATE_RGBW(R,r);
+    UPDATE_RGBW(G,g);
+    UPDATE_RGBW(B,b);
     #if ENABLED(RGBW_LED)
-      WRITE(RGB_LED_W_PIN, w ? HIGH : LOW);
-      analogWrite(RGB_LED_W_PIN, w);
+      UPDATE_RGBW(W,w);
     #endif
+
   #endif
 
   #if ENABLED(PCA9632)
-    pca9632_set_led_color(r, g, b); // Update I2C LED driver
+    // Update I2C LED driver
+    pca9632_set_led_color(incol);
+  #endif
+
+  #if ENABLED(PCA9533)
+    RGBsetColor(incol.r, incol.g, incol.b, true);
+  #endif
+
+  #if EITHER(LED_CONTROL_MENU, PRINTER_EVENT_LEDS)
+    // Don't update the color when OFF
+    lights_on = !incol.is_off();
+    if (lights_on) color = incol;
   #endif
 }
+
+#if ENABLED(LED_CONTROL_MENU)
+  void LEDLights::toggle() { if (lights_on) set_off(); else update(); }
+#endif
 
 #endif // HAS_COLOR_LEDS

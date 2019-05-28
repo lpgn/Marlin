@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,19 +19,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef __BEDLEVEL_H__
-#define __BEDLEVEL_H__
+#include "../../inc/MarlinConfigPre.h"
 
-#include "../../inc/MarlinConfig.h"
-
-#if ENABLED(MESH_BED_LEVELING)
-  #include "mbl/mesh_bed_leveling.h"
-#elif ENABLED(AUTO_BED_LEVELING_UBL)
-  #include "ubl/ubl.h"
-#elif HAS_ABL
-  #include "abl/abl.h"
-#endif
+typedef struct {
+  int8_t x_index, y_index;
+  float distance; // When populated, the distance from the search location
+} mesh_index_pair;
 
 #if ENABLED(PROBE_MANUALLY)
   extern bool g29_in_progress;
@@ -40,33 +35,42 @@
 #endif
 
 bool leveling_is_valid();
-bool leveling_is_active();
 void set_bed_leveling_enabled(const bool enable=true);
 void reset_bed_level();
 
 #if ENABLED(ENABLE_LEVELING_FADE_HEIGHT)
-  void set_z_fade_height(const float zfh);
+  void set_z_fade_height(const float zfh, const bool do_report=true);
 #endif
 
-#if ENABLED(AUTO_BED_LEVELING_BILINEAR) || ENABLED(MESH_BED_LEVELING)
-
-  #include <stdint.h>
-
-  typedef float (*element_2d_fn)(const uint8_t, const uint8_t);
-
-  /**
-   * Print calibration results for plotting or manual frame adjustment.
-   */
-  void print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, element_2d_fn fn);
-
-#endif
-
-#if ENABLED(MESH_BED_LEVELING) || ENABLED(PROBE_MANUALLY)
+#if EITHER(MESH_BED_LEVELING, PROBE_MANUALLY)
   void _manual_goto_xy(const float &x, const float &y);
 #endif
 
-#if HAS_PROBING_PROCEDURE
-  void out_of_range_error(const char* p_edge);
-#endif
+#if HAS_MESH
 
-#endif // __BEDLEVEL_H__
+  typedef float (&bed_mesh_t)[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y];
+
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+    #include "abl/abl.h"
+  #elif ENABLED(AUTO_BED_LEVELING_UBL)
+    #include "ubl/ubl.h"
+  #elif ENABLED(MESH_BED_LEVELING)
+    #include "mbl/mesh_bed_leveling.h"
+  #endif
+
+  #define Z_VALUES(X,Y) Z_VALUES_ARR[X][Y]
+
+  #if EITHER(AUTO_BED_LEVELING_BILINEAR, MESH_BED_LEVELING)
+
+    #include <stdint.h>
+
+    typedef float (*element_2d_fn)(const uint8_t, const uint8_t);
+
+    /**
+     * Print calibration results for plotting or manual frame adjustment.
+     */
+    void print_2d_array(const uint8_t sx, const uint8_t sy, const uint8_t precision, element_2d_fn fn);
+
+  #endif
+
+#endif

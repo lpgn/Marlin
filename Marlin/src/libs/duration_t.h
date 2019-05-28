@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,9 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
-#ifndef __DURATION_T__
-#define __DURATION_T__
+#include "../HAL/shared/Marduino.h"
 
 struct duration_t {
   /**
@@ -151,10 +151,10 @@ struct duration_t {
     if (with_days) {
       uint16_t d = this->day();
       sprintf_P(buffer, PSTR("%ud %02u:%02u"), d, h % 24, m);
-      return d >= 10 ? 8 : 7;
+      return d >= 10 ? 9 : 8;
     }
     else if (h < 100) {
-      sprintf_P(buffer, PSTR("%02u:%02u"), h % 24, m);
+      sprintf_P(buffer, PSTR("%02u:%02u"), h, m);
       return 5;
     }
     else {
@@ -163,5 +163,3 @@ struct duration_t {
     }
   }
 };
-
-#endif // __DURATION_T__

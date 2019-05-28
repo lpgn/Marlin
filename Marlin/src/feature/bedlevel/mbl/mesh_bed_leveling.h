@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2016 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
@@ -19,33 +19,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-
-#ifndef _MESH_BED_LEVELING_H_
-#define _MESH_BED_LEVELING_H_
+#pragma once
 
 #include "../../../inc/MarlinConfig.h"
 
-enum MeshLevelingState {
-  MeshReport,
-  MeshStart,
-  MeshNext,
-  MeshSet,
-  MeshSetZOffset,
-  MeshReset
-};
-
-enum MBLStatus {
-  MBL_STATUS_NONE = 0,
-  MBL_STATUS_HAS_MESH_BIT = 0,
-  MBL_STATUS_ACTIVE_BIT = 1
+enum MeshLevelingState : char {
+  MeshReport,     // G29 S0
+  MeshStart,      // G29 S1
+  MeshNext,       // G29 S2
+  MeshSet,        // G29 S3
+  MeshSetZOffset, // G29 S4
+  MeshReset       // G29 S5
 };
 
 #define MESH_X_DIST ((MESH_MAX_X - (MESH_MIN_X)) / (GRID_MAX_POINTS_X - 1))
 #define MESH_Y_DIST ((MESH_MAX_Y - (MESH_MIN_Y)) / (GRID_MAX_POINTS_Y - 1))
+#define _GET_MESH_X(I) mbl.index_to_xpos[I]
+#define _GET_MESH_Y(J) mbl.index_to_ypos[J]
+#define Z_VALUES_ARR mbl.z_values
 
 class mesh_bed_leveling {
 public:
-  static uint8_t status; // Has Mesh and Is Active bits
   static float z_offset,
                z_values[GRID_MAX_POINTS_X][GRID_MAX_POINTS_Y],
                index_to_xpos[GRID_MAX_POINTS_X],
@@ -53,14 +47,18 @@ public:
 
   mesh_bed_leveling();
 
+  static void report_mesh();
+
   static void reset();
 
-  static void set_z(const int8_t px, const int8_t py, const float &z) { z_values[px][py] = z; }
+  FORCE_INLINE static bool has_mesh() {
+    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
+      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
+        if (z_values[x][y]) return true;
+    return false;
+  }
 
-  static bool active()                       { return TEST(status, MBL_STATUS_ACTIVE_BIT); }
-  static void set_active(const bool onOff)   { onOff ? SBI(status, MBL_STATUS_ACTIVE_BIT) : CBI(status, MBL_STATUS_ACTIVE_BIT); }
-  static bool has_mesh()                     { return TEST(status, MBL_STATUS_HAS_MESH_BIT); }
-  static void set_has_mesh(const bool onOff) { onOff ? SBI(status, MBL_STATUS_HAS_MESH_BIT) : CBI(status, MBL_STATUS_HAS_MESH_BIT); }
+  static void set_z(const int8_t px, const int8_t py, const float &z) { z_values[px][py] = z; }
 
   static inline void zigzag(const int8_t index, int8_t &px, int8_t &py) {
     px = index % (GRID_MAX_POINTS_X);
@@ -75,22 +73,22 @@ public:
   }
 
   static int8_t cell_index_x(const float &x) {
-    int8_t cx = (x - (MESH_MIN_X)) * (1.0 / (MESH_X_DIST));
+    int8_t cx = (x - (MESH_MIN_X)) * (1.0f / (MESH_X_DIST));
     return constrain(cx, 0, (GRID_MAX_POINTS_X) - 2);
   }
 
   static int8_t cell_index_y(const float &y) {
-    int8_t cy = (y - (MESH_MIN_Y)) * (1.0 / (MESH_Y_DIST));
+    int8_t cy = (y - (MESH_MIN_Y)) * (1.0f / (MESH_Y_DIST));
     return constrain(cy, 0, (GRID_MAX_POINTS_Y) - 2);
   }
 
   static int8_t probe_index_x(const float &x) {
-    int8_t px = (x - (MESH_MIN_X) + 0.5 * (MESH_X_DIST)) * (1.0 / (MESH_X_DIST));
+    int8_t px = (x - (MESH_MIN_X) + 0.5f * (MESH_X_DIST)) * (1.0f / (MESH_X_DIST));
     return WITHIN(px, 0, GRID_MAX_POINTS_X - 1) ? px : -1;
   }
 
   static int8_t probe_index_y(const float &y) {
-    int8_t py = (y - (MESH_MIN_Y) + 0.5 * (MESH_Y_DIST)) * (1.0 / (MESH_Y_DIST));
+    int8_t py = (y - (MESH_MIN_Y) + 0.5f * (MESH_Y_DIST)) * (1.0f / (MESH_Y_DIST));
     return WITHIN(py, 0, GRID_MAX_POINTS_Y - 1) ? py : -1;
   }
 
@@ -116,14 +114,10 @@ public:
       #endif
     ;
   }
+
+  #if IS_CARTESIAN && DISABLED(SEGMENT_LEVELED_MOVES)
+    static void line_to_destination(const float fr_mm_s, uint8_t x_splits=0xFF, uint8_t y_splits=0xFF);
+  #endif
 };
 
 extern mesh_bed_leveling mbl;
-
-// Support functions, which may be embedded in the class later
-
-void mesh_line_to_destination(const float fr_mm_s, uint8_t x_splits=0xFF, uint8_t y_splits=0xFF);
-
-void mbl_mesh_report();
-
-#endif // _MESH_BED_LEVELING_H_
