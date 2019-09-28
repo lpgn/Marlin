@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,6 +65,27 @@ void GcodeSuite::M115() {
     // Volumetric Extrusion (M200)
     cap_line(PSTR("VOLUMETRIC")
       #if DISABLED(NO_VOLUMETRICS)
+        , true
+      #endif
+    );
+
+    // Acceleration Clamping (M201)
+    cap_line(PSTR("ACCEL CLAMP")
+      #if ENABLED(MAX_ACCELERATION_CAP)
+        , true
+      #endif
+    );
+
+    // Feedrate Clamping (M203)
+    cap_line(PSTR("FEED CLAMP")
+      #if ENABLED(MAX_FEEDRATE_CAP)
+        , true
+      #endif
+    );
+
+    // Jerk Clamping (M205)
+    cap_line(PSTR("JERK CLAMP")
+      #if ENABLED(MAX_JERK_CAP)
         , true
       #endif
     );

@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -247,6 +247,64 @@
 #endif
 
 /**
+ * LCD Contrast for Graphical Displays
+ */
+#if ENABLED(CARTESIO_UI)
+  #define _LCD_CONTRAST_MIN   60
+  #define _LCD_CONTRAST_INIT  90
+  #define _LCD_CONTRAST_MAX  140
+#elif ENABLED(miniVIKI)
+  #define _LCD_CONTRAST_MIN   75
+  #define _LCD_CONTRAST_INIT  95
+  #define _LCD_CONTRAST_MAX  115
+#elif ENABLED(VIKI2)
+  #define _LCD_CONTRAST_INIT 140
+#elif ENABLED(ELB_FULL_GRAPHIC_CONTROLLER)
+  #define _LCD_CONTRAST_MIN   90
+  #define _LCD_CONTRAST_INIT 110
+  #define _LCD_CONTRAST_MAX  130
+#elif ENABLED(AZSMZ_12864)
+  #define _LCD_CONTRAST_MIN  120
+  #define _LCD_CONTRAST_INIT 190
+#elif ENABLED(MKS_MINI_12864)
+  #define _LCD_CONTRAST_MIN  120
+  #define _LCD_CONTRAST_INIT 195
+#elif ANY(FYSETC_MINI_12864_X_X, FYSETC_MINI_12864_1_2, FYSETC_MINI_12864_2_0, FYSETC_MINI_12864_2_1)
+  #define _LCD_CONTRAST_INIT 220
+#elif ENABLED(ULTI_CONTROLLER)
+  #define _LCD_CONTRAST_INIT 127
+  #define _LCD_CONTRAST_MAX  254
+#elif EITHER(MAKRPANEL, MINIPANEL)
+  #define _LCD_CONTRAST_INIT  17
+#endif
+
+#define HAS_LCD_CONTRAST defined(_LCD_CONTRAST_INIT)
+#if HAS_LCD_CONTRAST
+  #ifndef LCD_CONTRAST_MIN
+    #ifdef _LCD_CONTRAST_MIN
+      #define LCD_CONTRAST_MIN _LCD_CONTRAST_MIN
+    #else
+      #define LCD_CONTRAST_MIN 0
+    #endif
+  #endif
+  #ifndef LCD_CONTRAST_INIT
+    #define LCD_CONTRAST_INIT _LCD_CONTRAST_INIT
+  #endif
+  #ifndef LCD_CONTRAST_MAX
+    #ifdef _LCD_CONTRAST_MAX
+      #define LCD_CONTRAST_MAX _LCD_CONTRAST_MAX
+    #elif _LCD_CONTRAST_INIT > 63
+      #define LCD_CONTRAST_MAX 255
+    #else
+      #define LCD_CONTRAST_MAX 63   // ST7567 6-bits contrast
+    #endif
+  #endif
+  #ifndef DEFAULT_LCD_CONTRAST
+    #define DEFAULT_LCD_CONTRAST LCD_CONTRAST_INIT
+  #endif
+#endif
+
+/**
  * Override here because this is set in Configuration_adv.h
  */
 #if HAS_LCD_MENU && DISABLED(ELB_FULL_GRAPHIC_CONTROLLER)
@@ -269,19 +327,22 @@
   #define DISABLE_INACTIVE_E DISABLE_E
 #endif
 
-// Power Signal Control Definitions
-// By default use ATX definition
-#ifndef POWER_SUPPLY
-  #define POWER_SUPPLY 1
+/**
+ * Power Supply Control
+ */
+#ifndef PSU_NAME
+  #if ENABLED(PSU_CONTROL)
+    #if PSU_ACTIVE_HIGH
+      #define PSU_NAME "XBox"     // X-Box 360 (203W)
+    #else
+      #define PSU_NAME "ATX"      // ATX style
+    #endif
+  #else
+    #define PSU_NAME "Generic"    // No control
+  #endif
 #endif
-#if (POWER_SUPPLY == 1)     // 1 = ATX
-  #define PS_ON_AWAKE  LOW
-  #define PS_ON_ASLEEP HIGH
-#elif (POWER_SUPPLY == 2)   // 2 = X-Box 360 203W
-  #define PS_ON_AWAKE  HIGH
-  #define PS_ON_ASLEEP LOW
-#endif
-#define HAS_POWER_SWITCH (POWER_SUPPLY > 0 && PIN_EXISTS(PS_ON))
+
+#define HAS_POWER_SWITCH (ENABLED(PSU_CONTROL) && PIN_EXISTS(PS_ON))
 
 /**
  * Temp Sensor defines
@@ -493,7 +554,7 @@
  *       Preserve this ordering when adding new drivers.
  */
 
-#define TRINAMICS (HAS_TRINAMIC || HAS_DRIVER(TMC2130_STANDALONE) || HAS_DRIVER(TMC2208_STANDALONE) || HAS_DRIVER(TMC26X_STANDALONE) || HAS_DRIVER(TMC2660_STANDALONE) || HAS_DRIVER(TMC5130_STANDALONE) || HAS_DRIVER(TMC5160_STANDALONE) || HAS_DRIVER(TMC2160_STANDALONE))
+#define TRINAMICS (HAS_TRINAMIC || HAS_DRIVER(TMC2130_STANDALONE) || HAS_DRIVER(TMC2208_STANDALONE) || HAS_DRIVER(TMC2209_STANDALONE) || HAS_DRIVER(TMC26X_STANDALONE) || HAS_DRIVER(TMC2660_STANDALONE) || HAS_DRIVER(TMC5130_STANDALONE) || HAS_DRIVER(TMC5160_STANDALONE) || HAS_DRIVER(TMC2160_STANDALONE))
 
 #ifndef MINIMUM_STEPPER_DIR_DELAY
   #if HAS_DRIVER(TB6560)
@@ -905,8 +966,8 @@
 #if HAS_TRINAMIC
   #define HAS_TMCX1X0       (HAS_DRIVER(TMC2130) || HAS_DRIVER(TMC2160) || HAS_DRIVER(TMC5130) || HAS_DRIVER(TMC5160))
   #define TMC_HAS_SPI       (HAS_TMCX1X0 || HAS_DRIVER(TMC2660))
-  #define HAS_STALLGUARD    (HAS_TMCX1X0 || HAS_DRIVER(TMC2660))
-  #define HAS_STEALTHCHOP   (HAS_TMCX1X0 || HAS_DRIVER(TMC2208))
+  #define HAS_STALLGUARD    (HAS_TMCX1X0 || HAS_DRIVER(TMC2209) || HAS_DRIVER(TMC2660))
+  #define HAS_STEALTHCHOP   (HAS_TMCX1X0 || HAS_TMC220x)
 
   #define STEALTHCHOP_ENABLED ANY(STEALTHCHOP_XY, STEALTHCHOP_Z, STEALTHCHOP_E)
   #define USE_SENSORLESS EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
@@ -914,19 +975,30 @@
   #if HOMING_Z_WITH_PROBE
     #undef Z_STALL_SENSITIVITY
   #endif
-  #define X_SENSORLESS (AXIS_HAS_STALLGUARD(X) && defined(X_STALL_SENSITIVITY))
-  #define Y_SENSORLESS (AXIS_HAS_STALLGUARD(Y) && defined(Y_STALL_SENSITIVITY))
-  #define Z_SENSORLESS (AXIS_HAS_STALLGUARD(Z) && defined(Z_STALL_SENSITIVITY))
+  #define X_SENSORLESS  (AXIS_HAS_STALLGUARD(X)  && defined(X_STALL_SENSITIVITY))
+  #define X2_SENSORLESS (AXIS_HAS_STALLGUARD(X2) && defined(X2_STALL_SENSITIVITY))
+  #define Y_SENSORLESS  (AXIS_HAS_STALLGUARD(Y)  && defined(Y_STALL_SENSITIVITY))
+  #define Z_SENSORLESS  (AXIS_HAS_STALLGUARD(Z)  && defined(Z_STALL_SENSITIVITY))
+  #if ENABLED(SPI_ENDSTOPS)
+    #define X_SPI_SENSORLESS X_SENSORLESS
+    #define Y_SPI_SENSORLESS Y_SENSORLESS
+    #define Z_SPI_SENSORLESS Z_SENSORLESS
+  #endif
 #endif
 
+#define HAS_E_STEPPER_ENABLE (HAS_E_DRIVER(TMC2660) \
+  || ( E0_ENABLE_PIN != X_ENABLE_PIN && E1_ENABLE_PIN != X_ENABLE_PIN   \
+    && E0_ENABLE_PIN != Y_ENABLE_PIN && E1_ENABLE_PIN != Y_ENABLE_PIN ) \
+)
+
 // Endstops and bed probe
-#define HAS_STOP_TEST(A,M) (PIN_EXISTS(A##_##M) && !IS_X2_ENDSTOP(A,M) && !IS_Y2_ENDSTOP(A,M) && !IS_Z2_OR_PROBE(A,M))
-#define HAS_X_MIN HAS_STOP_TEST(X,MIN)
-#define HAS_X_MAX HAS_STOP_TEST(X,MAX)
-#define HAS_Y_MIN HAS_STOP_TEST(Y,MIN)
-#define HAS_Y_MAX HAS_STOP_TEST(Y,MAX)
-#define HAS_Z_MIN HAS_STOP_TEST(Z,MIN)
-#define HAS_Z_MAX HAS_STOP_TEST(Z,MAX)
+#define _HAS_STOP(A,M) (PIN_EXISTS(A##_##M) && !IS_X2_ENDSTOP(A,M) && !IS_Y2_ENDSTOP(A,M) && !IS_Z2_OR_PROBE(A,M))
+#define HAS_X_MIN _HAS_STOP(X,MIN)
+#define HAS_X_MAX _HAS_STOP(X,MAX)
+#define HAS_Y_MIN _HAS_STOP(Y,MIN)
+#define HAS_Y_MAX _HAS_STOP(Y,MAX)
+#define HAS_Z_MIN _HAS_STOP(Z,MIN)
+#define HAS_Z_MAX _HAS_STOP(Z,MAX)
 #define HAS_X2_MIN (PIN_EXISTS(X2_MIN))
 #define HAS_X2_MAX (PIN_EXISTS(X2_MAX))
 #define HAS_Y2_MIN (PIN_EXISTS(Y2_MIN))
@@ -954,6 +1026,13 @@
 #define HAS_TEMP_CHAMBER HAS_TEMP_ADC_CHAMBER
 #define HAS_HEATED_CHAMBER (HAS_TEMP_CHAMBER && PIN_EXISTS(HEATER_CHAMBER))
 
+#if ENABLED(JOYSTICK)
+  #define HAS_JOY_ADC_X  PIN_EXISTS(JOY_X)
+  #define HAS_JOY_ADC_Y  PIN_EXISTS(JOY_Y)
+  #define HAS_JOY_ADC_Z  PIN_EXISTS(JOY_Z)
+  #define HAS_JOY_ADC_EN PIN_EXISTS(JOY_EN)
+#endif
+
 // Heaters
 #define HAS_HEATER_0 (PIN_EXISTS(HEATER_0))
 #define HAS_HEATER_1 (PIN_EXISTS(HEATER_1))
@@ -965,7 +1044,8 @@
 
 // Shorthand for common combinations
 #define HAS_HEATED_BED (HAS_TEMP_BED && HAS_HEATER_BED)
-#define HAS_TEMP_SENSOR (HAS_TEMP_HOTEND || HAS_HEATED_BED || HAS_TEMP_CHAMBER)
+#define BED_OR_CHAMBER (HAS_HEATED_BED || HAS_TEMP_CHAMBER)
+#define HAS_TEMP_SENSOR (HAS_TEMP_HOTEND || BED_OR_CHAMBER)
 
 // PID heating
 #if !HAS_HEATED_BED
@@ -988,7 +1068,21 @@
 #define HAS_AUTO_FAN_4 (HOTENDS > 4 && PIN_EXISTS(E4_AUTO_FAN))
 #define HAS_AUTO_FAN_5 (HOTENDS > 5 && PIN_EXISTS(E5_AUTO_FAN))
 #define HAS_AUTO_CHAMBER_FAN (HAS_TEMP_CHAMBER && PIN_EXISTS(CHAMBER_AUTO_FAN))
+
 #define HAS_AUTO_FAN (HAS_AUTO_FAN_0 || HAS_AUTO_FAN_1 || HAS_AUTO_FAN_2 || HAS_AUTO_FAN_3 || HAS_AUTO_FAN_4 || HAS_AUTO_FAN_5 || HAS_AUTO_CHAMBER_FAN)
+#if HAS_AUTO_FAN
+  #define AUTO_CHAMBER_IS_0 (CHAMBER_AUTO_FAN_PIN == E0_AUTO_FAN_PIN)
+  #define AUTO_CHAMBER_IS_1 (CHAMBER_AUTO_FAN_PIN == E1_AUTO_FAN_PIN)
+  #define AUTO_CHAMBER_IS_2 (CHAMBER_AUTO_FAN_PIN == E2_AUTO_FAN_PIN)
+  #define AUTO_CHAMBER_IS_3 (CHAMBER_AUTO_FAN_PIN == E3_AUTO_FAN_PIN)
+  #define AUTO_CHAMBER_IS_4 (CHAMBER_AUTO_FAN_PIN == E4_AUTO_FAN_PIN)
+  #define AUTO_CHAMBER_IS_5 (CHAMBER_AUTO_FAN_PIN == E5_AUTO_FAN_PIN)
+  #define AUTO_CHAMBER_IS_E (AUTO_CHAMBER_IS_0 || AUTO_CHAMBER_IS_1 || AUTO_CHAMBER_IS_2 || AUTO_CHAMBER_IS_3 || AUTO_CHAMBER_IS_4 || AUTO_CHAMBER_IS_5)
+#endif
+
+#if !HAS_AUTO_CHAMBER_FAN || AUTO_CHAMBER_IS_E
+  #undef AUTO_POWER_CHAMBER_FAN
+#endif
 
 // Other fans
 #define HAS_FAN0 (PIN_EXISTS(FAN))
@@ -997,11 +1091,11 @@
 #define HAS_CONTROLLER_FAN (PIN_EXISTS(CONTROLLER_FAN))
 
 // Servos
-#define HAS_SERVO_0 (PIN_EXISTS(SERVO0))
-#define HAS_SERVO_1 (PIN_EXISTS(SERVO1))
-#define HAS_SERVO_2 (PIN_EXISTS(SERVO2))
-#define HAS_SERVO_3 (PIN_EXISTS(SERVO3))
-#define HAS_SERVOS (defined(NUM_SERVOS) && NUM_SERVOS > 0)
+#define HAS_SERVO_0 (PIN_EXISTS(SERVO0) && NUM_SERVOS > 0)
+#define HAS_SERVO_1 (PIN_EXISTS(SERVO1) && NUM_SERVOS > 1)
+#define HAS_SERVO_2 (PIN_EXISTS(SERVO2) && NUM_SERVOS > 2)
+#define HAS_SERVO_3 (PIN_EXISTS(SERVO3) && NUM_SERVOS > 3)
+#define HAS_SERVOS  (NUM_SERVOS > 0)
 
 #if HAS_SERVOS && !defined(Z_PROBE_SERVO_NR)
   #define Z_PROBE_SERVO_NR -1
@@ -1021,7 +1115,8 @@
 #define HAS_KILL        (PIN_EXISTS(KILL))
 #define HAS_SUICIDE     (PIN_EXISTS(SUICIDE))
 #define HAS_PHOTOGRAPH  (PIN_EXISTS(PHOTOGRAPH))
-#define HAS_BUZZER      (PIN_EXISTS(BEEPER) || ENABLED(LCD_USE_I2C_BUZZER))
+#define HAS_BUZZER      (PIN_EXISTS(BEEPER) || EITHER(LCD_USE_I2C_BUZZER, PCA9632_BUZZER))
+#define USE_BEEPER      (HAS_BUZZER && DISABLED(LCD_USE_I2C_BUZZER, PCA9632_BUZZER))
 #define HAS_CASE_LIGHT  (PIN_EXISTS(CASE_LIGHT) && ENABLED(CASE_LIGHT_ENABLE))
 
 // Digital control
@@ -1150,10 +1245,17 @@
   #define WRITE_HEATER_0(v) WRITE_HEATER_0P(v)
 #endif
 
+#ifndef MIN_POWER
+  #define MIN_POWER 0
+#endif
+
 /**
  * Heated bed requires settings
  */
 #if HAS_HEATED_BED
+  #ifndef MIN_BED_POWER
+    #define MIN_BED_POWER 0
+  #endif
   #ifndef MAX_BED_POWER
     #define MAX_BED_POWER 255
   #endif
@@ -1193,17 +1295,9 @@
   #define FAN_COUNT 0
 #endif
 
-#if HAS_FAN0
-  #define WRITE_FAN(v) WRITE(FAN_PIN, (v) ^ FAN_INVERTING)
-  #define WRITE_FAN0(v) WRITE_FAN(v)
+#if FAN_COUNT > 0
+  #define WRITE_FAN(n, v) WRITE(FAN##n##_PIN, (v) ^ FAN_INVERTING)
 #endif
-#if HAS_FAN1
-  #define WRITE_FAN1(v) WRITE(FAN1_PIN, (v) ^ FAN_INVERTING)
-#endif
-#if HAS_FAN2
-  #define WRITE_FAN2(v) WRITE(FAN2_PIN, (v) ^ FAN_INVERTING)
-#endif
-#define WRITE_FAN_N(n, v) WRITE_FAN##n(v)
 
 /**
  * Part Cooling fan multipliexer
@@ -1365,7 +1459,7 @@
   #define _PROBE_RADIUS (DELTA_PRINTABLE_RADIUS - (MIN_PROBE_EDGE))
   #ifndef DELTA_CALIBRATION_RADIUS
     #ifdef X_PROBE_OFFSET_FROM_EXTRUDER
-      #define DELTA_CALIBRATION_RADIUS (DELTA_PRINTABLE_RADIUS - MAX(ABS(X_PROBE_OFFSET_FROM_EXTRUDER), ABS(Y_PROBE_OFFSET_FROM_EXTRUDER), ABS(MIN_PROBE_EDGE)))
+      #define DELTA_CALIBRATION_RADIUS (DELTA_PRINTABLE_RADIUS - _MAX(ABS(X_PROBE_OFFSET_FROM_EXTRUDER), ABS(Y_PROBE_OFFSET_FROM_EXTRUDER), ABS(MIN_PROBE_EDGE)))
     #else
       #define DELTA_CALIBRATION_RADIUS _PROBE_RADIUS
     #endif
@@ -1403,10 +1497,10 @@
 #else
 
   // Boundaries for Cartesian probing based on bed limits
-  #define _MIN_PROBE_X (MAX(X_MIN_BED + MIN_PROBE_EDGE, X_MIN_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
-  #define _MIN_PROBE_Y (MAX(Y_MIN_BED + MIN_PROBE_EDGE, Y_MIN_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
-  #define _MAX_PROBE_X (MIN(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
-  #define _MAX_PROBE_Y (MIN(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
+  #define _MIN_PROBE_X (_MAX(X_MIN_BED + MIN_PROBE_EDGE, X_MIN_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
+  #define _MIN_PROBE_Y (_MAX(Y_MIN_BED + MIN_PROBE_EDGE, Y_MIN_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
+  #define _MAX_PROBE_X (_MIN(X_MAX_BED - (MIN_PROBE_EDGE), X_MAX_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
+  #define _MAX_PROBE_Y (_MIN(Y_MAX_BED - (MIN_PROBE_EDGE), Y_MAX_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
 
 #endif
 
@@ -1443,15 +1537,15 @@
   #else
     // Boundaries for Cartesian probing based on set limits
     #if ENABLED(AUTO_BED_LEVELING_UBL)
-      #define _MESH_MIN_X (MAX(X_MIN_BED + MESH_INSET, X_MIN_POS))  // UBL is careful not to probe off the bed.  It does not
-      #define _MESH_MIN_Y (MAX(Y_MIN_BED + MESH_INSET, Y_MIN_POS))  // need *_PROBE_OFFSET_FROM_EXTRUDER in the mesh dimensions
-      #define _MESH_MAX_X (MIN(X_MAX_BED - (MESH_INSET), X_MAX_POS))
-      #define _MESH_MAX_Y (MIN(Y_MAX_BED - (MESH_INSET), Y_MAX_POS))
+      #define _MESH_MIN_X (_MAX(X_MIN_BED + MESH_INSET, X_MIN_POS))  // UBL is careful not to probe off the bed.  It does not
+      #define _MESH_MIN_Y (_MAX(Y_MIN_BED + MESH_INSET, Y_MIN_POS))  // need *_PROBE_OFFSET_FROM_EXTRUDER in the mesh dimensions
+      #define _MESH_MAX_X (_MIN(X_MAX_BED - (MESH_INSET), X_MAX_POS))
+      #define _MESH_MAX_Y (_MIN(Y_MAX_BED - (MESH_INSET), Y_MAX_POS))
     #else
-      #define _MESH_MIN_X (MAX(X_MIN_BED + MESH_INSET, X_MIN_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
-      #define _MESH_MIN_Y (MAX(Y_MIN_BED + MESH_INSET, Y_MIN_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
-      #define _MESH_MAX_X (MIN(X_MAX_BED - (MESH_INSET), X_MAX_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
-      #define _MESH_MAX_Y (MIN(Y_MAX_BED - (MESH_INSET), Y_MAX_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
+      #define _MESH_MIN_X (_MAX(X_MIN_BED + MESH_INSET, X_MIN_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
+      #define _MESH_MIN_Y (_MAX(Y_MIN_BED + MESH_INSET, Y_MIN_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
+      #define _MESH_MAX_X (_MIN(X_MAX_BED - (MESH_INSET), X_MAX_POS + X_PROBE_OFFSET_FROM_EXTRUDER))
+      #define _MESH_MAX_Y (_MIN(Y_MAX_BED - (MESH_INSET), Y_MAX_POS + Y_PROBE_OFFSET_FROM_EXTRUDER))
     #endif
   #endif
 
@@ -1544,7 +1638,7 @@
   #ifndef LCD_FEEDBACK_FREQUENCY_DURATION_MS
     #define LCD_FEEDBACK_FREQUENCY_DURATION_MS 100
   #endif
-#else
+#elif HAS_BUZZER
   #ifndef LCD_FEEDBACK_FREQUENCY_HZ
     #define LCD_FEEDBACK_FREQUENCY_HZ 5000
   #endif
@@ -1556,7 +1650,7 @@
 /**
  * Make sure DOGLCD_SCK and DOGLCD_MOSI are defined.
  */
-#if ENABLED(DOGLCD)
+#if HAS_GRAPHICAL_LCD
   #ifndef DOGLCD_SCK
     #define DOGLCD_SCK  SCK_PIN
   #endif
@@ -1665,8 +1759,9 @@
 #endif
 
 // Force SDCARD_SORT_ALPHA to be enabled for Graphical LCD on LPC1768
+// on boards where SD card and LCD display share the same SPI bus
 // because of a bug in the shared SPI implementation. (See #8122)
-#if defined(TARGET_LPC1768) && ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER)
+#if defined(TARGET_LPC1768) && ENABLED(REPRAP_DISCOUNT_FULL_GRAPHIC_SMART_CONTROLLER) && (SCK_PIN == LCD_PINS_D4)
   #define SDCARD_SORT_ALPHA         // Keeps one directory level in RAM. Changing
                                     // directory levels still glitches the screen,
                                     // but the following LCD update cleans it up.
@@ -1692,15 +1787,13 @@
   #endif
 #endif
 
-// needs to be here so that we catch the above changes to our defines
+// Defined here to catch the above defines
 #if ENABLED(SDCARD_SORT_ALPHA)
   #define HAS_FOLDER_SORTING (FOLDER_SORTING || ENABLED(SDSORT_GCODE))
 #endif
 
 // If platform requires early initialization of watchdog to properly boot
 #define EARLY_WATCHDOG (ENABLED(USE_WATCHDOG) && defined(ARDUINO_ARCH_SAM))
-
-#define USE_EXECUTE_COMMANDS_IMMEDIATE (ANY(G29_RETRY_AND_RECOVER, GCODE_MACROS, POWER_LOSS_RECOVERY) || HAS_DRIVER(L6470))
 
 #if ENABLED(Z_TRIPLE_STEPPER_DRIVERS)
   #define Z_STEPPER_COUNT 3
@@ -1728,4 +1821,23 @@
   #elif HAS_SPI_LCD
     #define LCD_HEIGHT 2
   #endif
+#endif
+
+//
+// The external SD card is not used. Hardware SPI is used to access the card.
+// When sharing the SD card with a PC we want the menu options to
+// mount/unmount the card and refresh it. So we disable card detect.
+//
+#if ENABLED(SDSUPPORT)
+  #if SD_CONNECTION_IS(ONBOARD) && DISABLED(NO_SD_HOST_DRIVE)
+    #undef SD_DETECT_PIN
+    #define SHARED_SD_CARD
+  #endif
+  #if DISABLED(SHARED_SD_CARD)
+    #define INIT_SDCARD_ON_BOOT
+  #endif
+#endif
+
+#if !NUM_SERIAL
+  #undef BAUD_RATE_GCODE
 #endif

@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1262,7 +1262,7 @@ void Stepper::isr() {
   // Program timer compare for the maximum period, so it does NOT
   // flag an interrupt while this ISR is running - So changes from small
   // periods to big periods are respected and the timer does not reset to 0
-  HAL_timer_set_compare(STEP_TIMER_NUM, HAL_TIMER_TYPE_MAX);
+  HAL_timer_set_compare(STEP_TIMER_NUM, hal_timer_t(HAL_TIMER_TYPE_MAX));
 
   // Count of ticks for the next ISR
   hal_timer_t next_isr_ticks = 0;
@@ -1291,7 +1291,7 @@ void Stepper::isr() {
 
     uint32_t interval =
       #if ENABLED(LIN_ADVANCE)
-        MIN(nextAdvanceISR, nextMainISR)  // Nearest time interval
+        _MIN(nextAdvanceISR, nextMainISR)  // Nearest time interval
       #else
         nextMainISR                       // Remaining stepper ISR time
       #endif
@@ -1404,7 +1404,7 @@ void Stepper::stepper_pulse_phase_isr() {
 
   // Count of pending loops and events for this iteration
   const uint32_t pending_events = step_event_count - step_events_completed;
-  uint8_t events_to_do = MIN(pending_events, steps_per_isr);
+  uint8_t events_to_do = _MIN(pending_events, steps_per_isr);
 
   // Just update the value we will get at the end of the loop
   step_events_completed += events_to_do;
@@ -1879,19 +1879,24 @@ uint32_t Stepper::stepper_block_phase_isr() {
     else
       interval = LA_ADV_NEVER;
 
-      #if ENABLED(MIXING_EXTRUDER)
-        // We don't know which steppers will be stepped because LA loop follows,
-        // with potentially multiple steps. Set all.
-        if (LA_steps >= 0)
-          MIXER_STEPPER_LOOP(j) NORM_E_DIR(j);
-        else
-          MIXER_STEPPER_LOOP(j) REV_E_DIR(j);
-      #else
-        if (LA_steps >= 0)
-          NORM_E_DIR(stepper_extruder);
-        else
-          REV_E_DIR(stepper_extruder);
-      #endif
+    #if ENABLED(MIXING_EXTRUDER)
+      // We don't know which steppers will be stepped because LA loop follows,
+      // with potentially multiple steps. Set all.
+      if (LA_steps >= 0)
+        MIXER_STEPPER_LOOP(j) NORM_E_DIR(j);
+      else
+        MIXER_STEPPER_LOOP(j) REV_E_DIR(j);
+    #else
+      if (LA_steps >= 0)
+        NORM_E_DIR(stepper_extruder);
+      else
+        REV_E_DIR(stepper_extruder);
+    #endif
+
+    // A small delay may be needed after changing direction
+    #if MINIMUM_STEPPER_DIR_DELAY > 0
+      DELAY_NS(MINIMUM_STEPPER_DIR_DELAY);
+    #endif
 
     // Get the timer count and estimate the end of the pulse
     hal_timer_t pulse_end = HAL_timer_get_count(PULSE_TIMER_NUM) + hal_timer_t(MIN_PULSE_TICKS);
@@ -2316,7 +2321,7 @@ void Stepper::report_positions() {
   #define EXTRA_CYCLES_BABYSTEP (STEP_PULSE_CYCLES - (CYCLES_EATEN_BABYSTEP))
 
   #define _ENABLE(AXIS) enable_## AXIS()
-  #define _READ_DIR(AXIS) AXIS ##_DIR_READ
+  #define _READ_DIR(AXIS) AXIS ##_DIR_READ()
   #define _INVERT_DIR(AXIS) INVERT_## AXIS ##_DIR
   #define _APPLY_DIR(AXIS, INVERT) AXIS ##_APPLY_DIR(INVERT, true)
 
@@ -2404,9 +2409,9 @@ void Stepper::report_positions() {
           enable_Y();
           enable_Z();
 
-          const uint8_t old_x_dir_pin = X_DIR_READ,
-                        old_y_dir_pin = Y_DIR_READ,
-                        old_z_dir_pin = Z_DIR_READ;
+          const uint8_t old_x_dir_pin = X_DIR_READ(),
+                        old_y_dir_pin = Y_DIR_READ(),
+                        old_z_dir_pin = Z_DIR_READ();
 
           X_DIR_WRITE(INVERT_X_DIR ^ z_direction);
           Y_DIR_WRITE(INVERT_Y_DIR ^ z_direction);
@@ -2502,7 +2507,7 @@ void Stepper::report_positions() {
         if (WITHIN(driver, 0, COUNT(motor_current_setting) - 1))
           motor_current_setting[driver] = current; // update motor_current_setting
 
-        #define _WRITE_CURRENT_PWM(P) analogWrite(MOTOR_CURRENT_PWM_## P ##_PIN, 255L * current / (MOTOR_CURRENT_PWM_RANGE))
+        #define _WRITE_CURRENT_PWM(P) analogWrite(pin_t(MOTOR_CURRENT_PWM_## P ##_PIN), 255L * current / (MOTOR_CURRENT_PWM_RANGE))
         switch (driver) {
           case 0:
             #if PIN_EXISTS(MOTOR_CURRENT_PWM_X)

@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
  */
 
 /**
- *  The monitor_driver routines are a close copy of the TMC code
+ * The monitor_driver routines are a close copy of the TMC code
  */
 
 #include "../../inc/MarlinConfig.h"
@@ -32,9 +32,9 @@
 
 L6470_Marlin L6470;
 
-#include "../stepper_indirection.h"
+#include "../../module/stepper/indirection.h"
+#include "../../module/planner.h"
 #include "../../gcode/gcode.h"
-#include "../planner.h"
 
 #define DEBUG_OUT ENABLED(L6470_CHITCHAT)
 #include "../../core/debug_out.h"

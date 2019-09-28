@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@
         if (!isnan(z_values[x][y])) {
           SERIAL_ECHO_START();
           SERIAL_ECHOPAIR("  M421 I", x, " J", y);
-          SERIAL_ECHOPAIR_F(" Z", z_values[x][y], 2);
+          SERIAL_ECHOPAIR_F(" Z", z_values[x][y], 4);
           SERIAL_EOL();
           serial_delay(75); // Prevent Printrun from exploding
         }
@@ -58,7 +58,7 @@
 
   void unified_bed_leveling::report_state() {
     echo_name();
-    serial_ternary(planner.leveling_active, PSTR(" System v" UBL_VERSION " "), PSTR(""), PSTR("in"), PSTR("active\n"));
+    SERIAL_ECHO_TERNARY(planner.leveling_active, " System v" UBL_VERSION " ", "", "in", "active\n");
     serial_delay(50);
   }
 

@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,7 +65,7 @@ Timer get_pwm_timer(const pin_t pin) {
             /*n, q*/      2, 0
           };
         }
-      #elif defined TCCR2A
+      #elif defined(TCCR2A)
         #if ENABLED(USE_OCR2A_AS_TOP)
           case TIMER2A:   break; // protect TIMER2A
           case TIMER2B: {

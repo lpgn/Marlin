@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#pragma once
 
 /************
  * ui_api.h *
@@ -40,8 +41,6 @@
  *   To view a copy of the GNU General Public License, go to the following  *
  *   location: <http://www.gnu.org/licenses/>.                              *
  ****************************************************************************/
-
-#pragma once
 
 #include "../../inc/MarlinConfig.h"
 
@@ -67,11 +66,12 @@ namespace ExtUI {
 
   bool isMoving();
   bool isAxisPositionKnown(const axis_t);
+  bool isAxisPositionKnown(const extruder_t);
   bool isPositionKnown(); // Axis position guaranteed, steppers active since homing
   bool isMachineHomed(); // Axis position most likely correct, steppers may have deactivated
   bool canMove(const axis_t);
   bool canMove(const extruder_t);
-  void enqueueCommands_P(PGM_P const);
+  void injectCommands_P(PGM_P const);
   bool commandsInQueue();
 
   bool isHeaterIdle(const heater_t);
@@ -198,10 +198,8 @@ namespace ExtUI {
     void normalizeNozzleOffset(const axis_t axis);
   #endif
 
-  #if HAS_BED_PROBE
-    float getZOffset_mm();
-    void setZOffset_mm(const float);
-  #endif
+  float getZOffset_mm();
+  void setZOffset_mm(const float);
 
   #if ENABLED(BACKLASH_GCODE)
     float getAxisBacklash_mm(const axis_t);

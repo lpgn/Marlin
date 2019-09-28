@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -276,7 +276,7 @@ class I2CPositionEncodersMgr {
       CHECK_IDX();
       encoders[idx].set_ec_enabled(enabled);
       SERIAL_ECHOPAIR("Error correction on ", axis_codes[axis]);
-      serial_ternary(encoders[idx].get_ec_enabled(), PSTR(" axis is "), PSTR("en"), PSTR("dis"), PSTR("abled.\n"));
+      SERIAL_ECHO_TERNARY(encoders[idx].get_ec_enabled(), " axis is ", "en", "dis", "abled.\n");
     }
 
     static void set_ec_threshold(const int8_t idx, const float newThreshold, const AxisEnum axis) {
