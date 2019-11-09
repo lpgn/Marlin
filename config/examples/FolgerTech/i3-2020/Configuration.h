@@ -731,9 +731,9 @@
  */
 #define DEFAULT_MAX_FEEDRATE          { 250, 250, 2, 17 }
 
-//#define MAX_FEEDRATE_CAP // Define limit that M203 cannot exceed as 2x default
-#if ENABLED(MAX_FEEDRATE_CAP)
-  //#define MAX_FEEDRATE_MANUAL { 600, 600, 10, 50 } // Overide default limits with manual values
+//#define LIMITED_MAX_FR_EDITING        // Limit edit via M203 or LCD to DEFAULT_MAX_FEEDRATE * 2
+#if ENABLED(LIMITED_MAX_FR_EDITING)
+  #define MAX_FEEDRATE_EDIT_VALUES    { 600, 600, 10, 50 } // ...or, set your own edit limits
 #endif
 
 /**
@@ -744,19 +744,9 @@
  */
 #define DEFAULT_MAX_ACCELERATION      { 1000, 1000, 4, 750 }
 
-//#define MAX_ACCELERATION_CAP // Define limit that M201 cannot exceed as 2x default
-#if ENABLED(MAX_ACCELERATION_CAP)
-  //#define MAX_ACCELERATION_MANUAL { 6000, 6000, 200, 20000 } // Overide default limits with manual values
-#endif
-
-/**
- * Prevents M201 from writing values over these limits
- * Defaults to 2x DEFAULT_MAX_ACCELERATION
- * Override default with explicit values below
- */
-//#define LIMIT_MAX_ACCELERATION
-#if ENABLED(LIMIT_MAX_ACCELERATION)
-  //#define MAX_ACCELERATION_LIMITS { 6000, 6000, 200, 20000 }
+//#define LIMITED_MAX_ACCEL_EDITING     // Limit edit via M201 or LCD to DEFAULT_MAX_ACCELERATION * 2
+#if ENABLED(LIMITED_MAX_ACCEL_EDITING)
+  #define MAX_ACCEL_EDIT_VALUES       { 6000, 6000, 200, 20000 } // ...or, set your own edit limits
 #endif
 
 /**
@@ -798,9 +788,9 @@
   #define DEFAULT_YJERK  8.5
   #define DEFAULT_ZJERK  0.3
 
-  //#define MAX_JERK_CAP // Define limit that M205 cannot exceed as 2x default
-  #if ENABLED(MAX_JERK_CAP)
-    //#define MAX_JERK_MANUAL { 20, 20, .6, 10 } // Overide default limits with manual values
+  //#define LIMITED_JERK_EDITING        // Limit edit via M205 or LCD to DEFAULT_aJERK * 2
+  #if ENABLED(LIMITED_JERK_EDITING)
+    #define MAX_JERK_EDIT_VALUES { 20, 20, 0.6, 10 } // ...or, set your own edit limits
   #endif
 #endif
 
@@ -919,11 +909,10 @@
 
 /**
  * Z Probe to nozzle (X,Y) offset, relative to (0, 0).
- * X and Y offsets must be integers.
  *
  * In the following example the X and Y offsets are both positive:
- * #define X_PROBE_OFFSET_FROM_EXTRUDER 10
- * #define Y_PROBE_OFFSET_FROM_EXTRUDER 10
+ *
+ *   #define NOZZLE_TO_PROBE_OFFSET { 10, 10, 0 }
  *
  *     +-- BACK ---+
  *     |           |
@@ -935,10 +924,10 @@
  *     |           |
  *     O-- FRONT --+
  *   (0,0)
+ *
+ * Specify a Probe position as { X, Y, Z }
  */
-#define X_PROBE_OFFSET_FROM_EXTRUDER 38     // X offset: -left  +right  [of the nozzle]
-#define Y_PROBE_OFFSET_FROM_EXTRUDER -7     // Y offset: -front +behind [the nozzle]
-#define Z_PROBE_OFFSET_FROM_EXTRUDER -10.75 // Z offset: -below +above  [the nozzle]
+#define NOZZLE_TO_PROBE_OFFSET { 38, -7, -10.75 }
 
 // Certain types of probes need to stay away from edges
 #define MIN_PROBE_EDGE 0
@@ -972,7 +961,7 @@
  *
  * Use these settings to specify the distance (mm) to raise the probe (or
  * lower the bed). The values set here apply over and above any (negative)
- * probe Z Offset set with Z_PROBE_OFFSET_FROM_EXTRUDER, M851, or the LCD.
+ * probe Z Offset set with NOZZLE_TO_PROBE_OFFSET, M851, or the LCD.
  * Only integer values >= 1 are valid here.
  *
  * Example: `M851 Z-5` with a CLEARANCE of 4  =>  9mm from bed to nozzle.
@@ -1229,12 +1218,6 @@
   // Set the number of grid points per dimension.
   #define GRID_MAX_POINTS_X 3
   #define GRID_MAX_POINTS_Y GRID_MAX_POINTS_X
-
-  // Set the boundaries for probing (where the probe can reach).
-  //#define LEFT_PROBE_BED_POSITION MIN_PROBE_EDGE
-  //#define RIGHT_PROBE_BED_POSITION (X_BED_SIZE - (MIN_PROBE_EDGE))
-  //#define FRONT_PROBE_BED_POSITION MIN_PROBE_EDGE
-  //#define BACK_PROBE_BED_POSITION (Y_BED_SIZE - (MIN_PROBE_EDGE))
 
   // Probe along the Y axis, advancing X after each column
   //#define PROBE_Y_FIRST
@@ -1550,7 +1533,7 @@
   #define NOZZLE_CLEAN_TRIANGLES  3
 
   // Specify positions as { X, Y, Z }
-  #define NOZZLE_CLEAN_START_POINT { 30, 30, (Z_MIN_POS + 1)}
+  #define NOZZLE_CLEAN_START_POINT {  30, 30, (Z_MIN_POS + 1) }
   #define NOZZLE_CLEAN_END_POINT   { 100, 60, (Z_MIN_POS + 1) }
 
   // Circular pattern radius
@@ -2093,6 +2076,9 @@
 //
 //#define TOUCH_BUTTONS
 #if ENABLED(TOUCH_BUTTONS)
+  #define BUTTON_DELAY_EDIT  50 // (ms) Button repeat delay for edit screens
+  #define BUTTON_DELAY_MENU 250 // (ms) Button repeat delay for menus
+
   #define XPT2046_X_CALIBRATION   12316
   #define XPT2046_Y_CALIBRATION  -8981
   #define XPT2046_X_OFFSET       -43
@@ -2232,7 +2218,7 @@
  */
 #define NUM_SERVOS 2 // Servo index starts with 0 for M280 command
 
-// Delay (in milliseconds) before the next move will start, to give the servo time to reach its target angle.
+// (ms) Delay  before the next move will start, to give the servo time to reach its target angle.
 // 300ms is a good value but you can try less delay.
 // If the servo can't reach the requested position, increase it.
 #define SERVO_DELAY { 500, 500 }

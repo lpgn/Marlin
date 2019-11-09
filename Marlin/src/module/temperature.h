@@ -39,10 +39,10 @@
 
 #if HOTENDS <= 1
   #define HOTEND_INDEX  0
-  #define E_UNUSED() UNUSED(e)
+  #define E_NAME
 #else
   #define HOTEND_INDEX  e
-  #define E_UNUSED()
+  #define E_NAME e
 #endif
 
 // Identifiers for other heaters
@@ -270,11 +270,14 @@ class Temperature {
 
     static volatile bool in_temp_isr;
 
-    static hotend_info_t temp_hotend[HOTENDS
+    #if HOTENDS
       #if ENABLED(TEMP_SENSOR_1_AS_REDUNDANT)
-        + 1
+        #define HOTEND_TEMPS (HOTENDS + 1)
+      #else
+        #define HOTEND_TEMPS HOTENDS
       #endif
-    ];
+      static hotend_info_t temp_hotend[HOTEND_TEMPS];
+    #endif
 
     #if HAS_HEATED_BED
       static bed_info_t temp_bed;
@@ -301,17 +304,15 @@ class Temperature {
       static bool allow_cold_extrude;
       static int16_t extrude_min_temp;
       FORCE_INLINE static bool tooCold(const int16_t temp) { return allow_cold_extrude ? false : temp < extrude_min_temp; }
-      FORCE_INLINE static bool tooColdToExtrude(const uint8_t e) {
-        E_UNUSED();
+      FORCE_INLINE static bool tooColdToExtrude(const uint8_t E_NAME) {
         return tooCold(degHotend(HOTEND_INDEX));
       }
-      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t e) {
-        E_UNUSED();
+      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t E_NAME) {
         return tooCold(degTargetHotend(HOTEND_INDEX));
       }
     #else
-      FORCE_INLINE static bool tooColdToExtrude(const uint8_t e) { UNUSED(e); return false; }
-      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t e) { UNUSED(e); return false; }
+      FORCE_INLINE static bool tooColdToExtrude(const uint8_t) { return false; }
+      FORCE_INLINE static bool targetTooColdToExtrude(const uint8_t) { return false; }
     #endif
 
     FORCE_INLINE static bool hotEnoughToExtrude(const uint8_t e) { return !tooColdToExtrude(e); }
@@ -349,7 +350,9 @@ class Temperature {
       static lpq_ptr_t lpq_ptr;
     #endif
 
-    static temp_range_t temp_range[HOTENDS];
+    #if HOTENDS
+      static temp_range_t temp_range[HOTENDS];
+    #endif
 
     #if HAS_HEATED_BED
       #if WATCH_BED
@@ -387,16 +390,8 @@ class Temperature {
       static millis_t preheat_end_time[HOTENDS];
     #endif
 
-    #if ENABLED(FILAMENT_WIDTH_SENSOR)
-      static int8_t meas_shift_index;  // Index of a delayed sample in buffer
-    #endif
-
     #if HAS_AUTO_FAN
       static millis_t next_auto_fan_check_ms;
-    #endif
-
-    #if ENABLED(FILAMENT_WIDTH_SENSOR)
-      static uint16_t current_raw_filwidth; // Measured filament diameter - one extruder only
     #endif
 
     #if ENABLED(PROBING_HEATERS_OFF)
@@ -416,8 +411,6 @@ class Temperature {
     /**
      * Instance Methods
      */
-
-    Temperature();
 
     void init();
 
@@ -456,7 +449,9 @@ class Temperature {
       }
     #endif
 
-    static float analog_to_celsius_hotend(const int raw, const uint8_t e);
+    #if HOTENDS
+      static float analog_to_celsius_hotend(const int raw, const uint8_t e);
+    #endif
 
     #if HAS_HEATED_BED
       static float analog_to_celsius_bed(const int raw);
@@ -549,97 +544,102 @@ class Temperature {
      * Preheating hotends
      */
     #ifdef MILLISECONDS_PREHEAT_TIME
-      static bool is_preheating(const uint8_t e) {
-        E_UNUSED();
+      static bool is_preheating(const uint8_t E_NAME) {
         return preheat_end_time[HOTEND_INDEX] && PENDING(millis(), preheat_end_time[HOTEND_INDEX]);
       }
-      static void start_preheat_time(const uint8_t e) {
-        E_UNUSED();
+      static void start_preheat_time(const uint8_t E_NAME) {
         preheat_end_time[HOTEND_INDEX] = millis() + MILLISECONDS_PREHEAT_TIME;
       }
-      static void reset_preheat_time(const uint8_t e) {
-        E_UNUSED();
+      static void reset_preheat_time(const uint8_t E_NAME) {
         preheat_end_time[HOTEND_INDEX] = 0;
       }
     #else
       #define is_preheating(n) (false)
     #endif
 
-    #if ENABLED(FILAMENT_WIDTH_SENSOR)
-      static float analog_to_mm_fil_width();         // Convert raw Filament Width to millimeters
-      static int8_t widthFil_to_size_ratio(); // Convert Filament Width (mm) to an extrusion ratio
-    #endif
-
-
     //high level conversion routines, for use outside of temperature.cpp
     //inline so that there is no performance decrease.
     //deg=degreeCelsius
 
-    FORCE_INLINE static float degHotend(const uint8_t e) {
-      E_UNUSED();
-      return temp_hotend[HOTEND_INDEX].celsius;
+    FORCE_INLINE static float degHotend(const uint8_t E_NAME) {
+      return (0
+        #if HOTENDS
+          + temp_hotend[HOTEND_INDEX].celsius
+        #endif
+      );
     }
 
     #if ENABLED(SHOW_TEMP_ADC_VALUES)
-      FORCE_INLINE static int16_t rawHotendTemp(const uint8_t e) {
-        E_UNUSED();
-        return temp_hotend[HOTEND_INDEX].raw;
+      FORCE_INLINE static int16_t rawHotendTemp(const uint8_t E_NAME) {
+        return (0
+          #if HOTENDS
+            + temp_hotend[HOTEND_INDEX].raw
+          #endif
+        );
       }
     #endif
 
-    FORCE_INLINE static int16_t degTargetHotend(const uint8_t e) {
-      E_UNUSED();
-      return temp_hotend[HOTEND_INDEX].target;
+    FORCE_INLINE static int16_t degTargetHotend(const uint8_t E_NAME) {
+      return (0
+        #if HOTENDS
+          + temp_hotend[HOTEND_INDEX].target
+        #endif
+      );
     }
 
     #if WATCH_HOTENDS
       static void start_watching_hotend(const uint8_t e=0);
     #else
-      static inline void start_watching_hotend(const uint8_t e=0) { UNUSED(e); }
+      static inline void start_watching_hotend(const uint8_t=0) {}
     #endif
 
-    #if HAS_LCD_MENU
-      static inline void start_watching_E0() { start_watching_hotend(0); }
-      static inline void start_watching_E1() { start_watching_hotend(1); }
-      static inline void start_watching_E2() { start_watching_hotend(2); }
-      static inline void start_watching_E3() { start_watching_hotend(3); }
-      static inline void start_watching_E4() { start_watching_hotend(4); }
-      static inline void start_watching_E5() { start_watching_hotend(5); }
-    #endif
+    #if HOTENDS
 
-    static void setTargetHotend(const int16_t celsius, const uint8_t e) {
-      E_UNUSED();
-      const uint8_t ee = HOTEND_INDEX;
-      #ifdef MILLISECONDS_PREHEAT_TIME
-        if (celsius == 0)
-          reset_preheat_time(ee);
-        else if (temp_hotend[ee].target == 0)
-          start_preheat_time(ee);
+      #if HAS_LCD_MENU
+        static inline void start_watching_E0() { start_watching_hotend(0); }
+        static inline void start_watching_E1() { start_watching_hotend(1); }
+        static inline void start_watching_E2() { start_watching_hotend(2); }
+        static inline void start_watching_E3() { start_watching_hotend(3); }
+        static inline void start_watching_E4() { start_watching_hotend(4); }
+        static inline void start_watching_E5() { start_watching_hotend(5); }
       #endif
-      #if ENABLED(AUTO_POWER_CONTROL)
-        powerManager.power_on();
-      #endif
-      temp_hotend[ee].target = _MIN(celsius, temp_range[ee].maxtemp - 15);
-      start_watching_hotend(ee);
-    }
 
-    FORCE_INLINE static bool isHeatingHotend(const uint8_t e) {
-      E_UNUSED();
-      return temp_hotend[HOTEND_INDEX].target > temp_hotend[HOTEND_INDEX].celsius;
-    }
-
-    FORCE_INLINE static bool isCoolingHotend(const uint8_t e) {
-      E_UNUSED();
-      return temp_hotend[HOTEND_INDEX].target < temp_hotend[HOTEND_INDEX].celsius;
-    }
-
-    #if HAS_TEMP_HOTEND
-      static bool wait_for_hotend(const uint8_t target_extruder, const bool no_wait_for_cooling=true
-        #if G26_CLICK_CAN_CANCEL
-          , const bool click_to_cancel=false
+      static void setTargetHotend(const int16_t celsius, const uint8_t E_NAME) {
+        const uint8_t ee = HOTEND_INDEX;
+        #ifdef MILLISECONDS_PREHEAT_TIME
+          if (celsius == 0)
+            reset_preheat_time(ee);
+          else if (temp_hotend[ee].target == 0)
+            start_preheat_time(ee);
         #endif
-      );
-    #endif
+        #if ENABLED(AUTO_POWER_CONTROL)
+          powerManager.power_on();
+        #endif
+        temp_hotend[ee].target = _MIN(celsius, temp_range[ee].maxtemp - 15);
+        start_watching_hotend(ee);
+      }
+
+      FORCE_INLINE static bool isHeatingHotend(const uint8_t E_NAME) {
+        return temp_hotend[HOTEND_INDEX].target > temp_hotend[HOTEND_INDEX].celsius;
+      }
+
+      FORCE_INLINE static bool isCoolingHotend(const uint8_t E_NAME) {
+        return temp_hotend[HOTEND_INDEX].target < temp_hotend[HOTEND_INDEX].celsius;
+      }
+
+      #if HAS_TEMP_HOTEND
+        static bool wait_for_hotend(const uint8_t target_extruder, const bool no_wait_for_cooling=true
+          #if G26_CLICK_CAN_CANCEL
+            , const bool click_to_cancel=false
+          #endif
+        );
+      #endif
+
+      FORCE_INLINE static bool still_heating(const uint8_t e) {
+        return degTargetHotend(e) > TEMP_HYSTERESIS && ABS(degHotend(e) - degTargetHotend(e)) > TEMP_HYSTERESIS;
+      }
+
+    #endif // HOTENDS
 
     FORCE_INLINE static bool still_heating(const uint8_t e) {
       return degTargetHotend(e) > TEMP_HYSTERESIS && ABS(degHotend(e) - degTargetHotend(e)) > TEMP_HYSTERESIS;
@@ -758,8 +758,7 @@ class Temperature {
 
     #if HEATER_IDLE_HANDLER
 
-      static void reset_heater_idle_timer(const uint8_t e) {
-        E_UNUSED();
+      static void reset_heater_idle_timer(const uint8_t E_NAME) {
         hotend_idle[HOTEND_INDEX].reset();
         start_watching_hotend(HOTEND_INDEX);
       }
@@ -782,7 +781,7 @@ class Temperature {
       #if ENABLED(AUTO_REPORT_TEMPERATURES)
         static uint8_t auto_report_temp_interval;
         static millis_t next_temp_report_ms;
-        static void auto_report_temperatures(void);
+        static void auto_report_temperatures();
         static inline void set_auto_report_interval(uint8_t v) {
           NOMORE(v, 60);
           auto_report_temp_interval = v;
