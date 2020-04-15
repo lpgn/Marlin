@@ -1,6 +1,6 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (c) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
  * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
@@ -59,8 +59,8 @@ void plan_arc(
     switch (gcode.workspace_plane) {
       default:
       case GcodeSuite::PLANE_XY: p_axis = X_AXIS; q_axis = Y_AXIS; l_axis = Z_AXIS; break;
-      case GcodeSuite::PLANE_ZX: p_axis = Z_AXIS; q_axis = X_AXIS; l_axis = Y_AXIS; break;
       case GcodeSuite::PLANE_YZ: p_axis = Y_AXIS; q_axis = Z_AXIS; l_axis = X_AXIS; break;
+      case GcodeSuite::PLANE_ZX: p_axis = Z_AXIS; q_axis = X_AXIS; l_axis = Y_AXIS; break;
     }
   #else
     constexpr AxisEnum p_axis = X_AXIS, q_axis = Y_AXIS, l_axis = Z_AXIS;
@@ -103,7 +103,18 @@ void plan_arc(
               mm_of_travel = linear_travel ? HYPOT(flat_mm, linear_travel) : ABS(flat_mm);
   if (mm_of_travel < 0.001f) return;
 
-  uint16_t segments = FLOOR(mm_of_travel / (MM_PER_ARC_SEGMENT));
+  const feedRate_t scaled_fr_mm_s = MMS_SCALED(feedrate_mm_s);
+
+  #ifdef ARC_SEGMENTS_PER_R
+    float seg_length = MM_PER_ARC_SEGMENT * radius;
+    LIMIT(seg_length, MM_PER_ARC_SEGMENT, ARC_SEGMENTS_PER_R);
+  #elif ARC_SEGMENTS_PER_SEC
+    float seg_length = scaled_fr_mm_s * RECIPROCAL(ARC_SEGMENTS_PER_SEC);
+    NOLESS(seg_length, MM_PER_ARC_SEGMENT);
+  #else
+    constexpr float seg_length = MM_PER_ARC_SEGMENT;
+  #endif
+  uint16_t segments = FLOOR(mm_of_travel / seg_length);
   NOLESS(segments, min_segments);
 
   /**
@@ -146,10 +157,9 @@ void plan_arc(
   // Initialize the extruder axis
   raw.e = current_position.e;
 
-  const feedRate_t scaled_fr_mm_s = MMS_SCALED(feedrate_mm_s);
 
   #if ENABLED(SCARA_FEEDRATE_SCALING)
-    const float inv_duration = scaled_fr_mm_s / MM_PER_ARC_SEGMENT;
+    const float inv_duration = scaled_fr_mm_s / seg_length;
   #endif
 
   millis_t next_idle_ms = millis() + 200UL;
@@ -206,7 +216,7 @@ void plan_arc(
       planner.apply_leveling(raw);
     #endif
 
-    if (!planner.buffer_line(raw, scaled_fr_mm_s, active_extruder, MM_PER_ARC_SEGMENT
+    if (!planner.buffer_line(raw, scaled_fr_mm_s, active_extruder, seg_length
       #if ENABLED(SCARA_FEEDRATE_SCALING)
         , inv_duration
       #endif
@@ -226,7 +236,7 @@ void plan_arc(
     planner.apply_leveling(raw);
   #endif
 
-  planner.buffer_line(raw, scaled_fr_mm_s, active_extruder, MM_PER_ARC_SEGMENT
+  planner.buffer_line(raw, scaled_fr_mm_s, active_extruder, seg_length
     #if ENABLED(SCARA_FEEDRATE_SCALING)
       , inv_duration
     #endif
@@ -242,19 +252,20 @@ void plan_arc(
  * G2: Clockwise Arc
  * G3: Counterclockwise Arc
  *
- * This command has two forms: IJ-form and R-form.
+ * This command has two forms: IJ-form (JK, KI) and R-form.
  *
- *  - I specifies an X offset. J specifies a Y offset.
- *    At least one of the IJ parameters is required.
- *    X and Y can be omitted to do a complete circle.
- *    The given XY is not error-checked. The arc ends
- *     based on the angle of the destination.
- *    Mixing I or J with R will throw an error.
+ *  - Depending on the current Workspace Plane orientation,
+ *    use parameters IJ/JK/KI to specify the XY/YZ/ZX offsets.
+ *    At least one of the IJ/JK/KI parameters is required.
+ *    XY/YZ/ZX can be omitted to do a complete circle.
+ *    The given XY/YZ/ZX is not error-checked. The arc ends
+ *    based on the angle of the destination.
+ *    Mixing IJ/JK/KI with R will throw an error.
  *
- *  - R specifies the radius. X or Y is required.
- *    Omitting both X and Y will throw an error.
- *    X or Y must differ from the current XY.
- *    Mixing R with I or J will throw an error.
+ *  - R specifies the radius. X or Y (Y or Z / Z or X) is required.
+ *    Omitting both XY/YZ/ZX will throw an error.
+ *    XY/YZ/ZX must differ from the current XY/YZ/ZX.
+ *    Mixing R with IJ/JK/KI will throw an error.
  *
  *  - P specifies the number of full circles to do
  *    before the specified arc move.
@@ -284,18 +295,30 @@ void GcodeSuite::G2_G3(const bool clockwise) {
       if (r) {
         const xy_pos_t p1 = current_position, p2 = destination;
         if (p1 != p2) {
-          const xy_pos_t d = p2 - p1, m = (p1 + p2) * 0.5f;   // XY distance and midpoint
-          const float e = clockwise ^ (r < 0) ? -1 : 1,       // clockwise -1/1, counterclockwise 1/-1
-                      len = d.magnitude(),                    // Total move length
-                      h = SQRT(sq(r) - sq(len * 0.5f));       // Distance to the arc pivot-point
-          const xy_pos_t s = { d.x, -d.y };                   // Inverse Slope of the perpendicular bisector
-          arc_offset = m + s * RECIPROCAL(len) * e * h - p1;  // The calculated offset
+          const xy_pos_t d2 = (p2 - p1) * 0.5f;          // XY vector to midpoint of move from current
+          const float e = clockwise ^ (r < 0) ? -1 : 1,  // clockwise -1/1, counterclockwise 1/-1
+                      len = d2.magnitude(),              // Distance to mid-point of move from current
+                      h2 = (r - len) * (r + len),        // factored to reduce rounding error
+                      h = (h2 >= 0) ? SQRT(h2) : 0.0f;   // Distance to the arc pivot-point from midpoint
+          const xy_pos_t s = { -d2.y, d2.x };            // Perpendicular bisector. (Divide by len for unit vector.)
+          arc_offset = d2 + s / len * e * h;             // The calculated offset (mid-point if |r| <= len)
         }
       }
     }
     else {
-      if (parser.seenval('I')) arc_offset.a = parser.value_linear_units();
-      if (parser.seenval('J')) arc_offset.b = parser.value_linear_units();
+      #if ENABLED(CNC_WORKSPACE_PLANES)
+        char achar, bchar;
+        switch (gcode.workspace_plane) {
+          default:
+          case GcodeSuite::PLANE_XY: achar = 'I'; bchar = 'J'; break;
+          case GcodeSuite::PLANE_YZ: achar = 'J'; bchar = 'K'; break;
+          case GcodeSuite::PLANE_ZX: achar = 'K'; bchar = 'I'; break;
+        }
+      #else
+        constexpr char achar = 'I', bchar = 'J';
+      #endif
+      if (parser.seenval(achar)) arc_offset.a = parser.value_linear_units();
+      if (parser.seenval(bchar)) arc_offset.b = parser.value_linear_units();
     }
 
     if (arc_offset) {
@@ -304,7 +327,7 @@ void GcodeSuite::G2_G3(const bool clockwise) {
         // P indicates number of circles to do
         int8_t circles_to_do = parser.byteval('P');
         if (!WITHIN(circles_to_do, 0, 100))
-          SERIAL_ERROR_MSG(MSG_ERR_ARC_ARGS);
+          SERIAL_ERROR_MSG(STR_ERR_ARC_ARGS);
 
         while (circles_to_do--)
           plan_arc(current_position, arc_offset, clockwise);
@@ -315,7 +338,7 @@ void GcodeSuite::G2_G3(const bool clockwise) {
       reset_stepper_timeout();
     }
     else
-      SERIAL_ERROR_MSG(MSG_ERR_ARC_ARGS);
+      SERIAL_ERROR_MSG(STR_ERR_ARC_ARGS);
   }
 }
 
