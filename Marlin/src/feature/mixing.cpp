@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,13 +98,13 @@ void Mixer::normalize(const uint8_t tool_index) {
 void Mixer::reset_vtools() {
   // Virtual Tools 0, 1, 2, 3 = Filament 1, 2, 3, 4, etc.
   // Every virtual tool gets a pure filament
-  for (uint8_t t = 0; t < MIXING_VIRTUAL_TOOLS && t < MIXING_STEPPERS; t++)
+  LOOP_L_N(t, MIXING_VIRTUAL_TOOLS && t < MIXING_STEPPERS)
     MIXER_STEPPER_LOOP(i)
       color[t][i] = (t == i) ? COLOR_A_MASK : 0;
 
   // Remaining virtual tools are 100% filament 1
   #if MIXING_VIRTUAL_TOOLS > MIXING_STEPPERS
-    for (uint8_t t = MIXING_STEPPERS; t < MIXING_VIRTUAL_TOOLS; t++)
+    LOOP_S_L_N(t, MIXING_STEPPERS, MIXING_VIRTUAL_TOOLS)
       MIXER_STEPPER_LOOP(i)
         color[t][i] = (i == 0) ? COLOR_A_MASK : 0;
   #endif
@@ -136,7 +136,7 @@ void Mixer::refresh_collector(const float proportion/*=1.0*/, const uint8_t t/*=
   float csum = 0, cmax = 0;
   MIXER_STEPPER_LOOP(i) {
     const float v = color[t][i];
-    cmax = MAX(cmax, v);
+    cmax = _MAX(cmax, v);
     csum += v;
   }
   //SERIAL_ECHOPAIR("Mixer::refresh_collector(", proportion, ", ", int(t), ") cmax=", cmax, "  csum=", csum, "  color");

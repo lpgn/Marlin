@@ -1,9 +1,9 @@
 /**
  * Marlin 3D Printer Firmware
- * Copyright (C) 2019 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
+ * Copyright (c) 2020 MarlinFirmware [https://github.com/MarlinFirmware/Marlin]
  *
  * Based on Sprinter and grbl.
- * Copyright (C) 2011 Camiel Gubbels / Erik van der Zalm
+ * Copyright (c) 2011 Camiel Gubbels / Erik van der Zalm
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ void GcodeSuite::M305() {
         SERIAL_ECHO_MSG("!Invalid Steinhart-Hart C coeff. (-0.01 < C < +0.01)");
   }                       // If not setting then report parameters
   else if (t_index < 0) { // ...all user thermistors
-    for (uint8_t i = 0; i < USER_THERMISTORS; i++)
+    LOOP_L_N(i, USER_THERMISTORS)
       thermalManager.log_user_thermistor(i);
   }
   else                    // ...one user thermistor
